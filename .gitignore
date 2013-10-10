@@ -4,3 +4,9 @@
 *.jar
 *.war
 *.ear
+
+# ANTLR autogen #
+*.tokens
+*Lexer.java
+*Listener.java
+*Parser.java

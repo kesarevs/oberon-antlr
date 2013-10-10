@@ -5,6 +5,7 @@ options
     language = Java;
 }
 
+// The keywords
 K_ARRAY : 'ARRAY' ;
 K_BEGIN : 'BEGIN';
 K_CASE : 'CASE' ;
@@ -34,6 +35,64 @@ K_WHILE : 'WHILE' ;
 K_WITH : 'WITH' ;
 K_TRUE : 'TRUE' ;
 K_FALSE : 'FALSE' ;
+
+// relations
+UNEQUAL : '#' ;
+LESS : '<' ;
+GREATER : '>' ;
+LESSOREQ : '<=' ;
+GREATEROREQ : '>=' ;
+IN : 'IN' ;
+EQUAL : '=' ;
+
+// operators
+ASSIGN : ':=' ;
+DIV : '/' ;
+ET : '&' ;
+MINUS : '-' ;
+MOD : '%' ;
+MULT : '*' ;
+OR : '|' ;
+PLUS : '+' ;
+
+muloperator: MULT | DIV | MOD | ET ;
+addoperator: PLUS | MINUS | OR ;
+relation: EQUAL | UNEQUAL | LESS | GREATER | LESSOREQ | GREATEROREQ | IN;
+assignment: designator ASSIGN expression ;
+
+
+PERIOD : '.' ;
+RANGESEP : '..' ;
+SEMI : ';' ;
+UPCHAR : '^' ;
+COLON : ':' ;
+COMMA : ',' ;
+
+
+ID : ('a'..'z'|'A'..'Z')('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
+fragment DIGIT : '0'..'9' ;
+fragment HEXDIGIT : '0'..'9'|'A'..'F' ;
+stringliteral : '"' ~('\\'|'"')* '"' ;
+
+
+// BaseTypes
+INT   : ('-')?DIGIT+ ;
+HEX : HEXDIGIT+ 'H' ;
+REAL : ('-')?DIGIT+'.'DIGIT+ ;
+BOOL : K_TRUE | K_FALSE ;
+number: INT | HEX | REAL;
+
+// Type declaration
+typedeclaration: ID EQUAL type ;
+type: qualident | arraytype | recordtype | pointertype | proceduretype ;
+
+arraytype: K_ARRAY expression (',' expression) K_OF type;
+recordtype: K_RECORD ('(' qualident ')')? fieldlistsequence K_END ;
+pointertype: K_POINTER K_TO type ;
+proceduretype: K_PROCEDURE formalparameters? ;
+
+
+
 
 module : K_MODULE ID SEMI importlist? declarationsequence?
     (K_BEGIN statementsequence)? K_END ID PERIOD ;
@@ -66,12 +125,6 @@ factor: number
         | designator ('(' explist? ')')?
         ;
 
-number: INT | HEX | REAL;
-
-charliteral : ~('\\'|'"') ;
-
-stringliteral : '"' charliteral* '"' ;
-
 set: '{' elementlist? '}' ;
 
 elementlist: element (COMMA element)* ;
@@ -87,36 +140,13 @@ explist: expression (COMMA expression)* ;
 
 actualparameters: '(' explist? ')' ;
 
-muloperator: MULT | DIV | MOD | ET ;
-
-addoperator: PLUS | MINUS | OR ;
-
-relation: EQUAL | UNEQUAL | LESS | GREATER | LESSOREQ | GREATEROREQ | IN;
-
-typedeclaration: ID EQUAL type ;
-
-type: qualident
-        | arraytype
-        | recordtype
-        | pointertype
-        | proceduretype
-        ;
-
 qualident: (ID '.')* ID ;
-
-arraytype: K_ARRAY expression (',' expression) K_OF type;
-
-recordtype: K_RECORD ('(' qualident ')')? fieldlistsequence K_END ;
 
 fieldlistsequence: fieldlist (SEMI fieldlist) ;
 
 fieldlist: (identlist COLON type)? ;
 
 identlist: identdef (COMMA identdef)* ;
-
-pointertype: K_POINTER K_TO type ;
-
-proceduretype: K_PROCEDURE formalparameters? ;
 
 variabledeclaration: identlist COLON type ;
 
@@ -152,8 +182,6 @@ statement: assignment
         | K_RETURN expression?
         ;
 
-assignment: designator ASSIGN expression ;
-
 procedurecall: designator actualparameters? ;
 
 ifstatement: K_IF expression K_THEN statementsequence
@@ -177,40 +205,7 @@ loopstatement: K_LOOP statementsequence K_END ;
 
 withstatement: K_WITH qualident COLON qualident K_DO statementsequence K_END ;
 
-ID : ('a'..'z'|'A'..'Z')('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
-fragment DIGIT : '0'..'9' ;
 
-INT   : ('-')?DIGIT+ ;
-
-fragment HEXDIGIT : '0'..'9'|'A'..'F' ;
-
-HEX : HEXDIGIT+ 'H' ;
-
-REAL : ('-')?DIGIT+'.'DIGIT+ ;
-
-BOOL : K_TRUE | K_FALSE ;
-
-ASSIGN : ':=' ;
-UNEQUAL : '#' ;
-LESS : '<' ;
-GREATER : '>' ;
-LESSOREQ : '<=' ;
-GREATEROREQ : '>=' ;
-IN : 'IN' ;
-COLON : ':' ;
-COMMA : ',' ;
-DIV : '/' ;
-EQUAL : '=' ;
-ET : '&' ;
-MINUS : '-' ;
-MOD : '%' ;
-MULT : '*' ;
-OR : '|' ;
-PERIOD : '.' ;
-PLUS : '+' ;
-RANGESEP : '..' ;
-SEMI : ';' ;
-UPCHAR : '^' ;
 
 WS : ( ' ' | '\t' | '\r' | '\n') -> skip;
 

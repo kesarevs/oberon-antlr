@@ -1,0 +1,19 @@
+MODULE FigureList;
+VAR
+    FigureList, MyFigure, Iterator : Figure;
+
+BEGIN
+    NEW(MyFigure);
+    MyFigure.name := "my favorite";
+    FigureList := MyFigure;
+    NEW(MyFigure);
+    MyFigure.name := "another one";
+    FigureList.next := MyFigure;
+    
+    Iterator := FigureList; 
+    WHILE Iterator # NIL DO
+        WRITELN(Iterator.name);
+        Iterator := Iterator.next;
+    END;
+    
+END FigureList.

@@ -1,7 +1,7 @@
 MODULE FigureList;
 VAR
     FigureList, MyFigure, Iterator : Figure;
-
+(* i am the comment  *)
 BEGIN
     NEW(MyFigure);
     MyFigure.name := "my favorite";

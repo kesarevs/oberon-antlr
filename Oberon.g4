@@ -208,4 +208,4 @@ withstatement: K_WITH qualident COLON qualident K_DO statementsequence K_END ;
 
 
 WS : ( ' ' | '\t' | '\r' | '\n') -> skip;
-
+COMMENT : '(*' .*? '*)' -> skip;

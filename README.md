@@ -1,4 +1,4 @@
 oberon_antlr
 ============
 
-Oberon interpriter 
+Oberon interpreter 

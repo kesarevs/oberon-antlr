@@ -1,5 +1,8 @@
 *.class
 
+# linux #
+*~
+
 # mac #
 .DS_Store
 

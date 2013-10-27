@@ -1,0 +1,14 @@
+MODULE FigureList;
+CONST
+    constInt = 5; constInt1 = 6 * 5 + 4 * (2 + 4 * 4); 
+    constReal = 6.8 * 5.6;
+VAR
+    int1, int2, int3, int4 : INTEGER;
+    real1, real2, real3, real4 : REAL;
+    int0 : INTEGER;
+BEGIN
+    int1 := (constInt * constInt + 4 * 4) * 4 * constInt + constInt * constInt;
+    int2 := 2 * constInt1;
+    int1 := int1 * int1;
+    int2 := int1;
+END FigureList.

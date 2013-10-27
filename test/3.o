@@ -1,0 +1,10 @@
+MODULE FigureList;
+VAR
+    MyINT : INTEGER;
+    MyReal : REAL;
+    MyBool : BOOLEAN;
+BEGIN
+    MyINT := 5;
+    MyReal := 5.0;
+    MyBool := TRUE;
+END FigureList.

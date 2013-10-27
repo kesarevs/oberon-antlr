@@ -35,6 +35,10 @@ K_WHILE : 'WHILE' ;
 K_WITH : 'WITH' ;
 K_TRUE : 'TRUE' ;
 K_FALSE : 'FALSE' ;
+K_PRINT : 'PRINT' ;
+K_INTEGER : 'INTEGER' ;
+K_REAL : 'REAL' ;
+K_BOOL : 'BOOLEAN' ;
 
 // relations
 UNEQUAL : '#' ;
@@ -79,12 +83,14 @@ stringliteral : '"' ~('\\'|'"')* '"' ;
 INT   : ('-')?DIGIT+ ;
 HEX : HEXDIGIT+ 'H' ;
 REAL : ('-')?DIGIT+'.'DIGIT+ ;
-BOOL : K_TRUE | K_FALSE ;
+bool : K_TRUE | K_FALSE ;
 number: INT | HEX | REAL;
 
 // Type declaration
 typedeclaration: ID EQUAL type ;
-type: qualident | arraytype | recordtype | pointertype | proceduretype ;
+type : baseTypes | arraytype | recordtype | pointertype | proceduretype ;
+
+baseTypes : K_INTEGER | K_REAL | K_BOOL ;
 
 arraytype: K_ARRAY expression (',' expression) K_OF type;
 recordtype: K_RECORD ('(' qualident ')')? fieldlistsequence K_END ;
@@ -100,6 +106,8 @@ module : K_MODULE ID SEMI importlist? declarationsequence?
 importlist : K_IMPORT importitem (COMMA importitem)* SEMI ;
 
 importitem : ID (ASSIGN ID)? ;
+
+print : K_PRINT designator SEMI ;
 
 declarationsequence :
         ( K_CONST (constantdeclaration SEMI)*
@@ -119,6 +127,7 @@ simpleexpression:  (PLUS|MINUS)? term (addoperator term)* ;
 term: factor (muloperator factor)* ;
 
 factor: number
+        | bool
         | stringliteral
         | K_NIL
         | set

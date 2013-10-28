@@ -2,33 +2,35 @@ MODULE FigureList;
 VAR
     MyINT : INTEGER;
 BEGIN
-    IF 1 THEN
+    IF 1 = 1 THEN
         MyINT := 1;
     END ;
 
-    IF 0 THEN
+    IF 0 = 1 THEN
         MyINT := 0;
     END ;
 
-    IF 0 THEN
+    IF 0 = 1 THEN
         MyINT := 0;
-    ELSIF 0 THEN
+    ELSIF 0 = 1 THEN
         MyINT := 0;
-    ELSIF 0 THEN
+    ELSIF 0 = 1 THEN
         MyINT := 0;
-    ELSIF 1 THEN
+    ELSIF 1 = 1 THEN
         MyINT := 1;   
     END ;
-    IF 0 THEN
+
+    IF 0 = 1 THEN
         MyINT := 0;
     ELSE
         MyINT := 1;   
     END ;
-    IF 0 THEN
+
+    IF 0 = 1 THEN
         MyINT := 0;
-    ELSIF 0 THEN
+    ELSIF 0 = 1 THEN
         MyINT := 0;
-    ELSIF 0 THEN
+    ELSIF 0 = 1 THEN
         MyINT := 0; 
     ELSE
         MyINT := 1;   

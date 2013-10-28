@@ -40,6 +40,54 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
         return Float.parseFloat(ctx.REAL().getText());
     }
 
+    @Override 
+    public Object visitBool(OberonParser.BoolContext ctx) { 
+        //TODO: Add operator not.
+        if (ctx.K_FALSE() == null) {
+            return true;
+        }
+        return false;
+    }
+
+    private Boolean isEqual(Object a, Object b) {
+        if (a.getClass() == b.getClass()) {
+            if (a instanceof Integer) {
+                return (Integer) a == (Integer) b;
+            }
+            if (a instanceof Float) {
+                return (Float) a == (Float) b;
+            }
+            if (a instanceof Boolean) {
+                return (Boolean) a == (Boolean) b;
+            }
+        }
+        throw new TypeCastException("Differente type finded in multiply operator.");
+    }
+
+    private Boolean isLess(Object a, Object b) {
+        if (a.getClass() == b.getClass()) {
+            if (a instanceof Integer) {
+                return (Integer) a < (Integer) b;
+            }
+            if (a instanceof Float) {
+                return (Float) a < (Float) b;
+            }
+        }
+        throw new TypeCastException("Differente type finded in < operator.");
+    }
+
+    private Boolean isGreater(Object a, Object b) {
+        if (a.getClass() == b.getClass()) {
+            if (a instanceof Integer) {
+                return (Integer) a > (Integer) b;
+            }
+            if (a instanceof Float) {
+                return (Float) a > (Float) b;
+            }
+        }
+        throw new TypeCastException("Differente type finded in > operator.");
+    }
+
     private Object multiply(Object a, Object b) {
         if (a.getClass() == b.getClass()) {
             if (a instanceof Integer) {
@@ -49,19 +97,16 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
                 return (Float) a * (Float) b;
             }
         }
-        return a;
+        throw new TypeCastException("Differente type finded in multiply operator.");
     }
 
     private Object divide(Object a, Object b) {
         if (a.getClass() == b.getClass()) {
-            if (a instanceof Integer) {
-                return (Integer) a / (Integer) b;
-            }
             if (a instanceof Float) {
                 return (Float) a / (Float) b;
             }
         }
-        return a;
+        throw new TypeCastException("Differente type finded in division operator.");
     }
 
     private Object sum(Object a, Object b) {
@@ -73,7 +118,7 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
                 return (Float) a + (Float) b;
             }
         }
-        return a;
+        throw new TypeCastException("Differente type finded in sum operator.");
     }
 
     private Object difference(Object a, Object b) {
@@ -85,7 +130,39 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
                 return (Float) a - (Float) b;
             }
         }
-        return a;
+        throw new TypeCastException("Differente type finded in minus operator.");
+    }
+
+    private Object logicOr(Object a, Object b) {
+        if (!(a instanceof Boolean) || !(b instanceof Boolean)) {
+            throw new TypeCastException("Can't cast to BOOLEAN in OR operator.");
+        }
+        return (Boolean) a || (Boolean) b;
+    }
+
+    private Object logicAnd(Object a, Object b) {
+        if (!(a instanceof Boolean) || !(b instanceof Boolean)) {
+            throw new TypeCastException("Can't cast to BOOLEAN in OR operator.");
+        }
+        return (Boolean) a && (Boolean) b;
+    }
+
+    private Object div(Object a, Object b) {
+        if (a.getClass() == b.getClass()) {
+            if (a instanceof Integer) {
+                return (Integer) a / (Integer) b;
+            }
+        }
+        throw new TypeCastException("Differente type finded in div operator.");
+    }
+
+    private Object mod(Object a, Object b) {
+        if (a.getClass() == b.getClass()) {
+            if (a instanceof Integer) {
+                return (Integer) a % (Integer) b;
+            }
+        }
+        throw new TypeCastException("Differente type finded in mod operator.");
     }
 
     @Override 
@@ -99,8 +176,17 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
                 case OberonParser.MULT:
                     result = multiply(result, nextNum);
                     break;
-                case OberonParser.DIV:
+                case OberonParser.DIVISION:
                     result = divide(result, nextNum);
+                    break;
+                case OberonParser.ET:
+                    result = logicAnd(result, nextNum);
+                    break;
+                case OberonParser.DIV:
+                    result = div(result, nextNum);
+                    break;
+                case OberonParser.MOD:
+                    result = mod(result, nextNum);
                     break;
             }
         }
@@ -119,15 +205,21 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
             if (result instanceof Float) {
                 result = - (Float) result;
             }
+            if (result instanceof Boolean) {
+                throw new TypeCastException("Can't cast from BOOLEAN to number.");
+            }
         }
         for(int i = 1; i < values.size(); i++) {
-            Object nextNum = visit(values.get(i));
+            Object nextVal = visit(values.get(i));
             switch (operators.get(i - 1).op.getType()) {
                 case OberonParser.MINUS:
-                    result = difference(result, nextNum);
+                    result = difference(result, nextVal);
                     break;
                 case OberonParser.PLUS:
-                    result = sum(result, nextNum);
+                    result = sum(result, nextVal);
+                    break;
+                case OberonParser.OR:
+                    result = logicOr(result, nextVal);
                     break;
             }
         }
@@ -139,8 +231,28 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
         List<OberonParser.SimpleexpressionContext> values = ctx.simpleexpression();
         OberonParser.RelationContext operators = ctx.relation();
         Object result = visit(values.get(0));
-        if (operators == null) {
-            return result;
+        if (operators != null) {
+            Object nextVal = visit(values.get(1));
+            switch(operators.op.getType()) {
+                /*
+                    todo:
+                    op=IN ;
+                */
+                case OberonParser.EQUAL:
+                    return isEqual(result, nextVal);
+                case OberonParser.UNEQUAL:
+                    return !isEqual(result, nextVal);
+                case OberonParser.LESS:
+                    return isLess(result, nextVal);
+                case OberonParser.GREATER:
+                    return isGreater(result, nextVal);
+                case OberonParser.LESSOREQ:
+                    return !isGreater(result, nextVal);
+                case OberonParser.GREATEROREQ:
+                    return !isLess(result, nextVal);
+                case OberonParser.IN:
+                    throw new ThisFunctionalityDoesNotSupport("Operator IN doesn't support.");
+            }
         }
         return result; 
     }
@@ -174,6 +286,12 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
     }
 
     @Override 
+    public Object visitDeclarationsequence(OberonParser.DeclarationsequenceContext ctx) { 
+        //TODO: Add posibility to make local variable.
+        return visitChildren(ctx); 
+    }
+
+    @Override 
     public Object visitVariabledeclaration(OberonParser.VariabledeclarationContext ctx) { 
         OberonParser.TypeContext type = ctx.type();
         List<OberonParser.IdentdefContext> varLst = ctx.identlist().identdef();
@@ -184,6 +302,9 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
                 break;
             case "REAL":
                 defVal = 0.0;
+                break;
+            case "BOOLEAN":
+                defVal = false;
                 break;
         }
         for(int i = 0; i < varLst.size(); i++) {
@@ -213,13 +334,10 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
         OberonParser.StatementsequenceContext loop = ctx.statementsequence();
         while (true) {
             Object result = visit(exp);
-            Boolean isInt = result instanceof Integer;
             Boolean isBool = result instanceof Boolean;
-            if (isInt && (Integer) result == 0) {
+            if (isBool && !(Boolean) result) {
                 break;
-            } else if (isBool && !(Boolean) result) {
-                break;
-            } else if (!isInt && !isBool) {
+            } else if (!isBool) {
                 throw new TypeCastException("Can't cast while expression to BOOLEAN.");
             }
             visit(loop);
@@ -234,13 +352,10 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
         do {
             visit(loop);
             Object result = visit(exp);
-            Boolean isInt = result instanceof Integer;
             Boolean isBool = result instanceof Boolean;
-            if (isInt && (Integer) result == 0) {
+            if (isBool && !(Boolean) result) {
                 break;
-            } else if (isBool && !(Boolean) result) {
-                break;
-            } else if (!isInt && !isBool) {
+            } else if (!isBool) {
                 throw new TypeCastException("Can't cast repeat expression to BOOLEAN.");
             }
         } while (true);
@@ -253,12 +368,11 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
         List<OberonParser.StatementsequenceContext> statement = ctx.statementsequence();
         for (int i = 0; i < expr.size(); i++) {
             Object result = visit(expr.get(i));
-            Boolean isInt = result instanceof Integer;
             Boolean isBool = result instanceof Boolean;
-            if (isInt && (Integer) result != 0 || isBool && (Boolean) result) {
+            if (isBool && (Boolean) result) {
                 visit(statement.get(i));
                 break;
-            } else if (!isInt && !isBool) {
+            } else if (!isBool) {
                 throw new TypeCastException("Can't cast if expression to BOOLEAN.");
             }
             //If all else-if failed and else exist, go to else
@@ -270,6 +384,12 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
     }
 
 
+}
+
+class ThisFunctionalityDoesNotSupport extends RuntimeException {
+    public ThisFunctionalityDoesNotSupport(String message) {
+        super(message);
+    }
 }
 
 class TypeCastException extends RuntimeException {

@@ -53,22 +53,30 @@ EQUAL : '=' ;
 
 // operators
 ASSIGN : ':=' ;
-DIV : '/' ;
+DIV : 'DIV' ;
+DIVISION : '/';
 ET : '&' ;
 MINUS : '-' ;
-MOD : '%' ;
+MOD : 'MOD' ;
 MULT : '*' ;
 OR : '|' ;
 PLUS : '+' ;
 
 muloperator:  op=MULT 
+            | op=DIVISION
             | op=DIV 
             | op=MOD 
             | op=ET ;
 addoperator:  op=PLUS
             | op=MINUS 
             | op=OR ;
-relation: EQUAL | UNEQUAL | LESS | GREATER | LESSOREQ | GREATEROREQ | IN;
+relation:     op=EQUAL 
+            | op=UNEQUAL 
+            | op=LESS 
+            | op=GREATER 
+            | op=LESSOREQ 
+            | op=GREATEROREQ 
+            | op=IN ;
 assignment: designator ASSIGN expression ;
 
 
@@ -115,6 +123,12 @@ arraytype: K_ARRAY expression (',' expression) K_OF type;
 recordtype: K_RECORD ('(' qualident ')')? fieldlistsequence K_END ;
 pointertype: K_POINTER K_TO type ;
 proceduretype: K_PROCEDURE formalparameters? ;
+
+//procedure
+proceduredeclaration: procedureheading SEMI procedurebody ID ;
+
+procedureheading: K_PROCEDURE MULT? identdef formalparameters? ;
+procedurebody: declarationsequence (K_BEGIN statementsequence)? K_END ;
 
 
 //loops
@@ -178,10 +192,6 @@ fieldlistsequence: fieldlist (SEMI fieldlist) ;
 
 fieldlist: (identlist COLON type)? ;
 
-proceduredeclaration: procedureheading SEMI procedurebody ID ;
-
-procedureheading: K_PROCEDURE MULT? identdef formalparameters? ;
-
 formalparameters: '(' params? ')' (COLON qualident)? ;
 
 params: fpsection (SEMI fpsection)* ;
@@ -191,8 +201,6 @@ fpsection: K_VAR? idlist COLON formaltype ;
 idlist: ID (COMMA ID)* ;
 
 formaltype: (K_ARRAY K_OF)* (qualident | proceduretype);
-
-procedurebody: declarationsequence (K_BEGIN statementsequence)? K_END ;
 
 forwarddeclaration: K_PROCEDURE UPCHAR? ID MULT? formalparameters? ;
 

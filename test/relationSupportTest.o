@@ -1,0 +1,38 @@
+MODULE FigureList;
+VAR
+    true_a, true_b, false_c, false_d : BOOLEAN;
+    intA, intB, intC, intD: INTEGER;
+    realA, realB, realC, realD: REAL;
+BEGIN
+    intA := 1;
+    intB := -1;
+    intC := 0;
+    intD := 2;
+
+    true_a:= intA = intA;
+    true_a:= intB = intB;
+    true_a:= intA = -intB;
+
+    false_c:= intA = intB;
+
+    true_a := intA # intB;
+    false_c := intA # -intB;
+
+    true_a := intA > intB;
+    false_c := intA > intA;
+    false_c := intA > intD;
+
+    true_a := intB < intA;
+    false_c := intA < intA;
+    false_c := intD < intA;
+
+    true_a := intA >= intB;
+    true_a := intA >= intA;
+    false_c := intA >= intD;
+
+    true_a := intB <= intA;
+    true_a := intA <= intA;
+    false_c := intD <= intA;
+
+
+END FigureList.

@@ -1,0 +1,49 @@
+MODULE FigureList;
+VAR
+    MyINT : INTEGER;
+    MyBool : BOOLEAN;
+BEGIN
+    MyINT := 10;
+    CASE MyINT OF
+        0..4, 4..5, 6 : MyBool := FALSE;
+        | 0, 1, 2, 3, 4..5 : MyBool := FALSE;
+        | 10 : MyBool := TRUE;
+        | 0..10 : MyBool := FALSE;
+        | 0, 1, 10 : MyBool := FALSE;
+        ELSE MyBool := FALSE;
+    END;
+
+    CASE MyINT OF
+        0..4, 4..5, 6 : MyBool := FALSE;
+        | 0, 1, 2, 3, 4..4 : MyBool := FALSE;
+        | 0..10 : MyBool := TRUE;
+        | 10 : MyBool := FALSE;
+        | 0, 1, 10 : MyBool := FALSE;
+        ELSE MyBool := FALSE;
+    END;
+
+    CASE MyINT OF
+        0..4, 4..5, 6 : MyBool := FALSE;
+        | 0, 1, 2, 3, 4..5 : MyBool := FALSE;
+        | 0, 1, 10 : MyBool := TRUE;
+        | 0..10 : MyBool := FALSE;
+        | 10 : MyBool := FALSE;
+        ELSE MyBool := FALSE;
+    END;
+
+    MyINT := 101;
+    CASE MyINT OF
+        0..4, 4..5, 6 : MyBool := FALSE;
+        | 0, 1, 2, 3, 4..5 : MyBool := FALSE;
+        | 0, 1, 10 : MyBool := FALSE;
+        | 0..10 : MyBool := FALSE;
+        | 10 : MyBool := FALSE;
+        ELSE MyBool := TRUE;
+    END;
+
+    CASE MyINT OF
+        0..4, 4..5, 6 : MyBool := FALSE;
+    END;
+    MyBool := TRUE;
+
+END FigureList.

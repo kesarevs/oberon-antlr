@@ -135,12 +135,22 @@ procedurebody: declarationsequence (K_BEGIN statementsequence)? K_END ;
 whilestatement: K_WHILE expression K_DO statementsequence K_END ;
 repeatstatement: K_REPEAT statementsequence K_UNTIL expression ;
 
+loopstatement: K_LOOP statementsequence K_END ;
 
-//if
+
+//if and case
 ifstatement: K_IF expression K_THEN statementsequence
         (K_ELSIF expression K_THEN statementsequence)*
         (K_ELSE statementsequence)? K_END ;
 
+casestatement: K_CASE expression K_OF caseitem ('|' caseitem)*
+    (K_ELSE statementsequence)? K_END ;
+
+caseitem: caselabellist COLON statementsequence ;
+
+caselabellist: caselabels (COMMA caselabels)* ;
+
+caselabels: expression (RANGESEP expression)? ;
 
 module : K_MODULE ID SEMI importlist? declarationsequence?
     (K_BEGIN statementsequence)? K_END ID PERIOD ;
@@ -219,17 +229,6 @@ statement: assignment
         ;
 
 procedurecall: designator actualparameters? ;
-
-casestatement: K_CASE expression K_OF caseitem ('|' caseitem)*
-    (K_ELSE statementsequence)? K_END ;
-
-caseitem: caselabellist COLON statementsequence ;
-
-caselabellist: caselabels (COMMA caselabels)* ;
-
-caselabels: expression (RANGESEP expression)? ;
-
-loopstatement: K_LOOP statementsequence K_END ;
 
 withstatement: K_WITH qualident COLON qualident K_DO statementsequence K_END ;
 

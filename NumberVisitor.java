@@ -2,6 +2,7 @@ import oberon.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.Stack;
 import java.util.List;
 import java.io.*;
@@ -163,6 +164,61 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
             }
         }
         throw new TypeCastException("Differente type finded in mod operator.");
+    }
+
+    @Override 
+    public Object visitCasestatement(OberonParser.CasestatementContext ctx) { 
+        Object result = visit(ctx.expression());
+        List<OberonParser.CaseitemContext> caseitems = ctx.caseitem();
+        for (int i = 0; i < caseitems.size(); i++) {
+            //TODO: Normal cast.
+            List<Object> segments = (List<Object>) visit(caseitems.get(i).caselabellist());
+            for(int j = 0; j < segments.size(); j++) {
+                Object caseitem = segments.get(j);
+                if (isEqual(result, caseitem)) {
+                    return visit(caseitems.get(i).statementsequence());
+                }
+            }
+        }
+        if (ctx.K_ELSE() != null) {
+            return visit(ctx.statementsequence());
+        }
+        return null; 
+    }
+
+    @Override 
+    public Object visitCaselabellist(OberonParser.CaselabellistContext ctx) { 
+        List<OberonParser.CaselabelsContext> labels = ctx.caselabels();
+        List<Object> segments = new ArrayList<Object>();
+        for(int i = 0; i < labels.size(); i++) {
+            Object result = visit(labels.get(i));
+            if (result instanceof List) {
+                //TODO: Normal cast.
+                segments.addAll((List<Object>) result);
+            } else {
+                segments.add(result);
+            }
+        }
+        return segments; 
+    }
+
+    @Override 
+    public Object visitCaselabels(OberonParser.CaselabelsContext ctx) { 
+        List<OberonParser.ExpressionContext> expr = ctx.expression();
+        Object result = visit(expr.get(0));
+        if (ctx.RANGESEP() != null) {
+            Object nextRang = visit(expr.get(1));
+            if (result instanceof Integer && nextRang instanceof Integer) {
+                List<Object> rangeSet = new ArrayList<Object>();
+                for(int i = (Integer)result; i <= (Integer)nextRang; i++) {
+                    rangeSet.add(i);
+                }
+                return rangeSet;
+            } else {
+                throw new TypeCastException("Can't cast variable to INTEGER in CASE range.");
+            }
+        }
+        return result; 
     }
 
     @Override 

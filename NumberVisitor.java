@@ -213,16 +213,38 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
         OberonParser.StatementsequenceContext loop = ctx.statementsequence();
         while (true) {
             Object result = visit(exp);
-            if (result instanceof Integer && (Integer) result == 0) {
+            Boolean isInt = result instanceof Integer;
+            Boolean isBool = result instanceof Boolean;
+            if (isInt && (Integer) result == 0) {
                 break;
-            } else if (result instanceof Boolean && !(Boolean) result) {
+            } else if (isBool && !(Boolean) result) {
                 break;
-            } else {
-                throw new TypeCastException("Can't cast while expression to BOOLEAN.")
+            } else if (!isInt && !isBool) {
+                throw new TypeCastException("Can't cast while expression to BOOLEAN.");
             }
             visit(loop);
         }
         return true;
+    }
+
+    @Override 
+    public Object visitRepeatstatement(OberonParser.RepeatstatementContext ctx) { 
+        OberonParser.ExpressionContext exp = ctx.expression();
+        OberonParser.StatementsequenceContext loop = ctx.statementsequence();
+        do {
+            visit(loop);
+            Object result = visit(exp);
+            Boolean isInt = result instanceof Integer;
+            Boolean isBool = result instanceof Boolean;
+            if (isInt && (Integer) result == 0) {
+                break;
+            } else if (isBool && !(Boolean) result) {
+                break;
+            } else if (!isInt && !isBool) {
+                throw new TypeCastException("Can't cast while expression to BOOLEAN.");
+            }
+        } while (true);
+        return true; 
     }
 
 }

@@ -6,4 +6,8 @@ BEGIN
     WHILE MyINT DO
         MyINT := MyINT - 1;
     END;
+    MyINT := (5 * 5 + 4 * 4) * 4 * 5 + 5 * 5;
+    REPEAT
+        MyINT := MyINT - 1;
+    UNTIL MyINT;
 END FigureList.

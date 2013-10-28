@@ -117,6 +117,10 @@ pointertype: K_POINTER K_TO type ;
 proceduretype: K_PROCEDURE formalparameters? ;
 
 
+//loops
+whilestatement: K_WHILE expression K_DO statementsequence K_END ;
+repeatstatement: K_REPEAT statementsequence K_UNTIL expression ;
+loopstatement: K_LOOP statementsequence K_END ;
 
 
 module : K_MODULE ID SEMI importlist? declarationsequence?
@@ -215,12 +219,6 @@ caseitem: caselabellist COLON statementsequence ;
 caselabellist: caselabels (COMMA caselabels)* ;
 
 caselabels: expression (RANGESEP expression)? ;
-
-whilestatement: K_WHILE expression K_DO statementsequence K_END ;
-
-repeatstatement: K_REPEAT statementsequence K_UNTIL expression ;
-
-loopstatement: K_LOOP statementsequence K_END ;
 
 withstatement: K_WITH qualident COLON qualident K_DO statementsequence K_END ;
 

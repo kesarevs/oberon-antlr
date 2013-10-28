@@ -6,7 +6,7 @@ Install
 
 Make sure you have Antlr4 installed already, which is available here:
 
-    http://www.antlr.org/wiki/display/ANTLR4/Home
+    http://www.antlr.org/
 
 Clone this repository and compile OberonCompiler:
 

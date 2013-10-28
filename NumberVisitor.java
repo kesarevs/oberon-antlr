@@ -241,11 +241,34 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
             } else if (isBool && !(Boolean) result) {
                 break;
             } else if (!isInt && !isBool) {
-                throw new TypeCastException("Can't cast while expression to BOOLEAN.");
+                throw new TypeCastException("Can't cast repeat expression to BOOLEAN.");
             }
         } while (true);
         return true; 
     }
+
+    @Override 
+    public Object visitIfstatement(OberonParser.IfstatementContext ctx) { 
+        List<OberonParser.ExpressionContext> expr = ctx.expression();
+        List<OberonParser.StatementsequenceContext> statement = ctx.statementsequence();
+        for (int i = 0; i < expr.size(); i++) {
+            Object result = visit(expr.get(i));
+            Boolean isInt = result instanceof Integer;
+            Boolean isBool = result instanceof Boolean;
+            if (isInt && (Integer) result != 0 || isBool && (Boolean) result) {
+                visit(statement.get(i));
+                break;
+            } else if (!isInt && !isBool) {
+                throw new TypeCastException("Can't cast if expression to BOOLEAN.");
+            }
+            //If all else-if failed and else exist, go to else
+            if (i != statement.size() - 1 && i == expr.size() - 1) {
+                visit(statement.get(i + 1));
+            }
+        }
+        return true;
+    }
+
 
 }
 

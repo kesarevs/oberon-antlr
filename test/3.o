@@ -1,6 +1,0 @@
-MODULE FigureList;
-VAR
-    MyINT : INTEGER;
-BEGIN
-    MyINT := -(5 * 5 + 4 * 4) * 4 * 5 + 5 * 5;
-END FigureList.

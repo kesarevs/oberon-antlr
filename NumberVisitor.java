@@ -206,6 +206,25 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
         memory.put(varName, new VariableContainer(varName, defVal, true));
         return defVal;
     }
+
+    @Override 
+    public Object visitWhilestatement(OberonParser.WhilestatementContext ctx) { 
+        OberonParser.ExpressionContext exp = ctx.expression();
+        OberonParser.StatementsequenceContext loop = ctx.statementsequence();
+        while (true) {
+            Object result = visit(exp);
+            if (result instanceof Integer && (Integer) result == 0) {
+                break;
+            } else if (result instanceof Boolean && !(Boolean) result) {
+                break;
+            } else {
+                throw new TypeCastException("Can't cast while expression to BOOLEAN.")
+            }
+            visit(loop);
+        }
+        return true;
+    }
+
 }
 
 class TypeCastException extends RuntimeException {

@@ -209,11 +209,11 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
         if (ctx.RANGESEP() != null) {
             Object nextRang = visit(expr.get(1));
             if (result instanceof Integer && nextRang instanceof Integer) {
-                List<Object> rangeSet = new ArrayList<Object>();
+                List<Object> range = new ArrayList<Object>();
                 for(int i = (Integer)result; i <= (Integer)nextRang; i++) {
-                    rangeSet.add(i);
+                    range.add(i);
                 }
-                return rangeSet;
+                return range;
             } else {
                 throw new TypeCastException("Can't cast variable to INTEGER in CASE range.");
             }

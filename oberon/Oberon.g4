@@ -90,13 +90,11 @@ COMMA : ',' ;
 
 ID : ('a'..'z'|'A'..'Z')('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 fragment DIGIT : '0'..'9' ;
-fragment HEXDIGIT : '0'..'9'|'A'..'F' ;
 stringliteral : '"' ~('\\'|'"')* '"' ;
 
 
 // BaseTypes
 INT : ('-')?DIGIT+ ;
-HEX : HEXDIGIT+ 'H' ;
 REAL : ('-')?DIGIT+'.'DIGIT+ ;
 bool : K_TRUE | K_FALSE ;
 
@@ -171,7 +169,6 @@ anint: INT;
 real: REAL;
 
 factor:   anint
-        | HEX
         | real
         | bool
         | stringliteral
@@ -181,11 +178,7 @@ factor:   anint
         | '(' simpleexpression ')'
         ;
 
-set: '{' elementlist? '}' ;
-
-elementlist: element (COMMA element)* ;
-
-element: expression (RANGESEP expression)? ;
+set: '{' caselabellist? '}' ;
 
 designator: qualident
     ('[' explist ']'

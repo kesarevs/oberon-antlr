@@ -14,12 +14,12 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
 
-public class NumberVisitor extends OberonBaseVisitor<Object> {
+public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     Map<String, VariableContainer> memory = new HashMap<String, VariableContainer>();
     Map<String, String> types = new HashMap<String, String>();
 
     @Override 
-    public Object visitModule(OberonParser.ModuleContext ctx) { 
+    public VariableContainer visitModule(OberonParser.ModuleContext ctx) { 
         List<TerminalNode> moduleName = ctx.ID();
         String name = moduleName.get(0).getText();
         String nameAtTheEnd = moduleName.get(1).getText();
@@ -27,155 +27,45 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
             throw new ModuleNotFoundException("Error: \"End " + nameAtTheEnd + ".\"\nExpected: \"End " + name + ".\"");
         }
         //TODO: Add reference on module class.
-        memory.put(name, new VariableContainer(name, new Object(), true));
+        //make const
+        memory.put(name, new VariableContainer(new Object()));
         return visitChildren(ctx); 
     }
 
     @Override 
-    public Object visitAnint(OberonParser.AnintContext ctx) { 
-        return Integer.parseInt(ctx.INT().getText());
+    public VariableContainer visitAnint(OberonParser.AnintContext ctx) { 
+        return new VariableContainer(Integer.parseInt(ctx.INT().getText()));
     }
 
     @Override 
-    public Object visitReal(OberonParser.RealContext ctx) { 
-        return Float.parseFloat(ctx.REAL().getText());
+    public VariableContainer visitReal(OberonParser.RealContext ctx) { 
+        return new VariableContainer(Float.parseFloat(ctx.REAL().getText()));
     }
 
     @Override 
-    public Object visitBool(OberonParser.BoolContext ctx) { 
+    public VariableContainer visitBool(OberonParser.BoolContext ctx) { 
         //TODO: Add operator not.
         if (ctx.K_FALSE() == null) {
-            return true;
+            return new VariableContainer(true);
         }
-        return false;
+        return new VariableContainer(false);
     }
 
-    private Boolean isEqual(Object a, Object b) {
-        if (a.getClass() == b.getClass()) {
-            if (a instanceof Integer) {
-                return (Integer) a == (Integer) b;
-            }
-            if (a instanceof Float) {
-                return (Float) a == (Float) b;
-            }
-            if (a instanceof Boolean) {
-                return (Boolean) a == (Boolean) b;
-            }
-        }
-        throw new TypeCastException("Differente type finded in multiply operator.");
-    }
-
-    private Boolean isLess(Object a, Object b) {
-        if (a.getClass() == b.getClass()) {
-            if (a instanceof Integer) {
-                return (Integer) a < (Integer) b;
-            }
-            if (a instanceof Float) {
-                return (Float) a < (Float) b;
-            }
-        }
-        throw new TypeCastException("Differente type finded in < operator.");
-    }
-
-    private Boolean isGreater(Object a, Object b) {
-        if (a.getClass() == b.getClass()) {
-            if (a instanceof Integer) {
-                return (Integer) a > (Integer) b;
-            }
-            if (a instanceof Float) {
-                return (Float) a > (Float) b;
-            }
-        }
-        throw new TypeCastException("Differente type finded in > operator.");
-    }
-
-    private Object multiply(Object a, Object b) {
-        if (a.getClass() == b.getClass()) {
-            if (a instanceof Integer) {
-                return (Integer) a * (Integer) b;
-            }
-            if (a instanceof Float) {
-                return (Float) a * (Float) b;
-            }
-        }
-        throw new TypeCastException("Differente type finded in multiply operator.");
-    }
-
-    private Object divide(Object a, Object b) {
-        if (a.getClass() == b.getClass()) {
-            if (a instanceof Float) {
-                return (Float) a / (Float) b;
-            }
-        }
-        throw new TypeCastException("Differente type finded in division operator.");
-    }
-
-    private Object sum(Object a, Object b) {
-        if (a.getClass() == b.getClass()) {
-            if (a instanceof Integer) {
-                return (Integer) a + (Integer) b;
-            }
-            if (a instanceof Float) {
-                return (Float) a + (Float) b;
-            }
-        }
-        throw new TypeCastException("Differente type finded in sum operator.");
-    }
-
-    private Object difference(Object a, Object b) {
-        if (a.getClass() == b.getClass()) {
-            if (a instanceof Integer) {
-                return (Integer) a - (Integer) b;
-            }
-            if (a instanceof Float) {
-                return (Float) a - (Float) b;
-            }
-        }
-        throw new TypeCastException("Differente type finded in minus operator.");
-    }
-
-    private Object logicOr(Object a, Object b) {
-        if (!(a instanceof Boolean) || !(b instanceof Boolean)) {
-            throw new TypeCastException("Can't cast to BOOLEAN in OR operator.");
-        }
-        return (Boolean) a || (Boolean) b;
-    }
-
-    private Object logicAnd(Object a, Object b) {
-        if (!(a instanceof Boolean) || !(b instanceof Boolean)) {
-            throw new TypeCastException("Can't cast to BOOLEAN in OR operator.");
-        }
-        return (Boolean) a && (Boolean) b;
-    }
-
-    private Object div(Object a, Object b) {
-        if (a.getClass() == b.getClass()) {
-            if (a instanceof Integer) {
-                return (Integer) a / (Integer) b;
-            }
-        }
-        throw new TypeCastException("Differente type finded in div operator.");
-    }
-
-    private Object mod(Object a, Object b) {
-        if (a.getClass() == b.getClass()) {
-            if (a instanceof Integer) {
-                return (Integer) a % (Integer) b;
-            }
-        }
-        throw new TypeCastException("Differente type finded in mod operator.");
-    }
-
+//TODO: Normal case.
     @Override 
-    public Object visitCasestatement(OberonParser.CasestatementContext ctx) { 
-        Object result = visit(ctx.expression());
+    public VariableContainer visitCasestatement(OberonParser.CasestatementContext ctx) { 
+        VariableContainer result = visit(ctx.expression());
         List<OberonParser.CaseitemContext> caseitems = ctx.caseitem();
         for (int i = 0; i < caseitems.size(); i++) {
-            //TODO: Normal cast.
-            List<Object> segments = (List<Object>) visit(caseitems.get(i).caselabellist());
+            List<VariableContainer> segments = (List<VariableContainer>) visit(caseitems.get(i).caselabellist()).getValue();
             for(int j = 0; j < segments.size(); j++) {
-                Object caseitem = segments.get(j);
-                if (isEqual(result, caseitem)) {
+                VariableContainer caseitem = segments.get(j);
+                if (caseitem.getValue() instanceof Range && result.getValue() instanceof Integer) {
+                    Range r = (Range) caseitem.getValue();
+                    if (r.contains((Integer) result.getValue())) {
+                        return visit(caseitems.get(i).statementsequence());
+                    }
+                } else if ((Boolean) result.isEqual(caseitem).getValue()) {
                     return visit(caseitems.get(i).statementsequence());
                 }
             }
@@ -187,62 +77,52 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
     }
 
     @Override 
-    public Object visitCaselabellist(OberonParser.CaselabellistContext ctx) { 
+    public VariableContainer visitCaselabellist(OberonParser.CaselabellistContext ctx) { 
         List<OberonParser.CaselabelsContext> labels = ctx.caselabels();
-        List<Object> segments = new ArrayList<Object>();
+        List<VariableContainer> segments = new ArrayList<VariableContainer>();
         for(int i = 0; i < labels.size(); i++) {
-            Object result = visit(labels.get(i));
-            if (result instanceof List) {
-                //TODO: Normal cast.
-                segments.addAll((List<Object>) result);
-            } else {
-                segments.add(result);
-            }
+            segments.add(visit(labels.get(i)));
         }
-        return segments; 
+        return new VariableContainer(segments); 
     }
 
     @Override 
-    public Object visitCaselabels(OberonParser.CaselabelsContext ctx) { 
+    public VariableContainer visitCaselabels(OberonParser.CaselabelsContext ctx) { 
         List<OberonParser.ExpressionContext> expr = ctx.expression();
-        Object result = visit(expr.get(0));
+        Object result = visit(expr.get(0)).getValue();
         if (ctx.RANGESEP() != null) {
-            Object nextRang = visit(expr.get(1));
+            Object nextRang = visit(expr.get(1)).getValue();
             if (result instanceof Integer && nextRang instanceof Integer) {
-                List<Object> range = new ArrayList<Object>();
-                for(int i = (Integer)result; i <= (Integer)nextRang; i++) {
-                    range.add(i);
-                }
-                return range;
+                return new VariableContainer(new Range((Integer) result, (Integer) nextRang));
             } else {
                 throw new TypeCastException("Can't cast variable to INTEGER in CASE range.");
             }
         }
-        return result; 
+        return new VariableContainer(result); 
     }
 
     @Override 
-    public Object visitTerm(OberonParser.TermContext ctx) { 
+    public VariableContainer visitTerm(OberonParser.TermContext ctx) { 
         List<OberonParser.MuloperatorContext> operators = ctx.muloperator();
         List<OberonParser.FactorContext> values = ctx.factor();
-        Object result = visit(values.get(0));
+        VariableContainer result = visit(values.get(0));
         for(int i = 1; i < values.size(); i++) {
-            Object nextNum = visit(values.get(i));
+            VariableContainer nextNum = visit(values.get(i));
             switch (operators.get(i - 1).op.getType()) {
                 case OberonParser.MULT:
-                    result = multiply(result, nextNum);
+                    result = result.multiply(nextNum);
                     break;
                 case OberonParser.DIVISION:
-                    result = divide(result, nextNum);
+                    result = result.divide(nextNum);
                     break;
                 case OberonParser.ET:
-                    result = logicAnd(result, nextNum);
+                    result = result.logicAnd(nextNum);
                     break;
                 case OberonParser.DIV:
-                    result = div(result, nextNum);
+                    result = result.div(nextNum);
                     break;
                 case OberonParser.MOD:
-                    result = mod(result, nextNum);
+                    result = result.mod(nextNum);
                     break;
             }
         }
@@ -250,62 +130,51 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
     }
 
     @Override 
-    public Object visitSimpleexpression(OberonParser.SimpleexpressionContext ctx) {
+    public VariableContainer visitSimpleexpression(OberonParser.SimpleexpressionContext ctx) {
         List<OberonParser.TermContext> values = ctx.term();
         List<OberonParser.AddoperatorContext> operators = ctx.addoperator();
-        Object result = visit(values.get(0));
+        VariableContainer result = visit(values.get(0));
         if(ctx.MINUS() != null) {
-            if (result instanceof Integer) {
-                result = - (Integer) result;
-            }
-            if (result instanceof Float) {
-                result = - (Float) result;
-            }
-            if (result instanceof Boolean) {
-                throw new TypeCastException("Can't cast from BOOLEAN to number.");
-            }
+            result = result.negative();
         }
         for(int i = 1; i < values.size(); i++) {
-            Object nextVal = visit(values.get(i));
+            VariableContainer nextVal = visit(values.get(i));
             switch (operators.get(i - 1).op.getType()) {
                 case OberonParser.MINUS:
-                    result = difference(result, nextVal);
-                    break;
+                    return result.difference(nextVal);
                 case OberonParser.PLUS:
-                    result = sum(result, nextVal);
-                    break;
+                    return result.sum(nextVal);
                 case OberonParser.OR:
-                    result = logicOr(result, nextVal);
-                    break;
+                    return result.logicOr(nextVal);
             }
         }
         return result;
     }
 
     @Override 
-    public Object visitExpression(OberonParser.ExpressionContext ctx) { 
+    public VariableContainer visitExpression(OberonParser.ExpressionContext ctx) { 
         List<OberonParser.SimpleexpressionContext> values = ctx.simpleexpression();
         OberonParser.RelationContext operators = ctx.relation();
-        Object result = visit(values.get(0));
+        VariableContainer result = visit(values.get(0));
         if (operators != null) {
-            Object nextVal = visit(values.get(1));
+            VariableContainer nextVal = visit(values.get(1));
             switch(operators.op.getType()) {
                 /*
                     todo:
                     op=IN ;
                 */
                 case OberonParser.EQUAL:
-                    return isEqual(result, nextVal);
+                    return result.isEqual(nextVal);
                 case OberonParser.UNEQUAL:
-                    return !isEqual(result, nextVal);
+                    return result.isEqual(nextVal).not();
                 case OberonParser.LESS:
-                    return isLess(result, nextVal);
+                    return result.isLess(nextVal);
                 case OberonParser.GREATER:
-                    return isGreater(result, nextVal);
+                    return result.isGreater(nextVal);
                 case OberonParser.LESSOREQ:
-                    return !isGreater(result, nextVal);
+                    return result.isGreater(nextVal).not();
                 case OberonParser.GREATEROREQ:
-                    return !isLess(result, nextVal);
+                    return result.isLess(nextVal).not();
                 case OberonParser.IN:
                     throw new ThisFunctionalityDoesNotSupport("Operator IN doesn't support.");
             }
@@ -314,41 +183,40 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
     }
 
     @Override 
-    public Object visitFactor(OberonParser.FactorContext ctx) {
+    public VariableContainer visitFactor(OberonParser.FactorContext ctx) {
         if (ctx.simpleexpression() != null) {
-            Object result = visit(ctx.simpleexpression());
-            return result;
+            return visit(ctx.simpleexpression());
         }
         if (ctx.designator() != null) {
             String varName = ctx.designator().getText();
             if (!memory.containsKey(varName)) {
                 throw new VariableNotDeclaredException("Variable " + varName + " is not declared.");
             }
-            return memory.get(varName).getValue();
+            return memory.get(varName);
         }
         return visitChildren(ctx); 
     }
 
     @Override 
-    public Object visitAssignment(OberonParser.AssignmentContext ctx) {
-        Object result = visit(ctx.expression());
+    public VariableContainer visitAssignment(OberonParser.AssignmentContext ctx) {
+        VariableContainer result = visit(ctx.expression());
         String varName = ctx.designator().getText();
         if (!memory.containsKey(varName)) {
             throw new VariableNotDeclaredException("Variable " + varName + " is not declared.");
         }
         memory.get(varName).setValue(result);
-        System.out.println(varName + " := " + result);
+        System.out.println(varName + " := " + result.getValue());
         return result;
     }
 
     @Override 
-    public Object visitDeclarationsequence(OberonParser.DeclarationsequenceContext ctx) { 
+    public VariableContainer visitDeclarationsequence(OberonParser.DeclarationsequenceContext ctx) { 
         //TODO: Add posibility to make local variable.
         return visitChildren(ctx); 
     }
 
     @Override 
-    public Object visitVariabledeclaration(OberonParser.VariabledeclarationContext ctx) { 
+    public VariableContainer visitVariabledeclaration(OberonParser.VariabledeclarationContext ctx) { 
         OberonParser.TypeContext type = ctx.type();
         List<OberonParser.IdentdefContext> varLst = ctx.identlist().identdef();
         Object defVal = 0;
@@ -368,28 +236,28 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
             if (memory.containsKey(varName)) {
                 throw new VariableDeclarationException("Variable " + varName + " already declared.");
             }
-            memory.put(varName, new VariableContainer(varName, defVal, false));
+            memory.put(varName, new VariableContainer(defVal));
         }
-        return defVal; 
+        return null; 
     }
 
     @Override 
-    public Object visitConstantdeclaration(OberonParser.ConstantdeclarationContext ctx) { 
+    public VariableContainer visitConstantdeclaration(OberonParser.ConstantdeclarationContext ctx) { 
         String varName = ctx.identdef().getText();
-        Object defVal = visit(ctx.expression());
+        VariableContainer val = visit(ctx.expression());
         if (memory.containsKey(varName)) {
             throw new VariableDeclarationException("Variable " + varName + " already declared.");
         }
-        memory.put(varName, new VariableContainer(varName, defVal, true));
-        return defVal;
+        memory.put(varName, new ConstVariableContainer(val.getValue()));
+        return val;
     }
 
     @Override 
-    public Object visitWhilestatement(OberonParser.WhilestatementContext ctx) { 
+    public VariableContainer visitWhilestatement(OberonParser.WhilestatementContext ctx) { 
         OberonParser.ExpressionContext exp = ctx.expression();
         OberonParser.StatementsequenceContext loop = ctx.statementsequence();
         while (true) {
-            Object result = visit(exp);
+            Object result = visit(exp).getValue();
             Boolean isBool = result instanceof Boolean;
             if (isBool && !(Boolean) result) {
                 break;
@@ -398,16 +266,16 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
             }
             visit(loop);
         }
-        return true;
+        return null;
     }
 
     @Override 
-    public Object visitRepeatstatement(OberonParser.RepeatstatementContext ctx) { 
+    public VariableContainer visitRepeatstatement(OberonParser.RepeatstatementContext ctx) { 
         OberonParser.ExpressionContext exp = ctx.expression();
         OberonParser.StatementsequenceContext loop = ctx.statementsequence();
         do {
             visit(loop);
-            Object result = visit(exp);
+            Object result = visit(exp).getValue();
             Boolean isBool = result instanceof Boolean;
             if (isBool && !(Boolean) result) {
                 break;
@@ -415,15 +283,15 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
                 throw new TypeCastException("Can't cast repeat expression to BOOLEAN.");
             }
         } while (true);
-        return true; 
+        return null; 
     }
 
     @Override 
-    public Object visitIfstatement(OberonParser.IfstatementContext ctx) { 
+    public VariableContainer visitIfstatement(OberonParser.IfstatementContext ctx) { 
         List<OberonParser.ExpressionContext> expr = ctx.expression();
         List<OberonParser.StatementsequenceContext> statement = ctx.statementsequence();
         for (int i = 0; i < expr.size(); i++) {
-            Object result = visit(expr.get(i));
+            Object result = visit(expr.get(i)).getValue();
             Boolean isBool = result instanceof Boolean;
             if (isBool && (Boolean) result) {
                 visit(statement.get(i));
@@ -436,7 +304,7 @@ public class NumberVisitor extends OberonBaseVisitor<Object> {
                 visit(statement.get(i + 1));
             }
         }
-        return true;
+        return null;
     }
 
 

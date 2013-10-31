@@ -20,9 +20,7 @@ public class VariableContainer {
     }
 
     public VariableContainer not() {
-        if (!(value instanceof Boolean)) {
-            throw new ConstVariableChanging("Boolean expected.");
-        }
+        assertNotBool("Boolean expected.");
         return new VariableContainer(!((Boolean) value));
     }
 
@@ -41,6 +39,12 @@ public class VariableContainer {
         }
     }
 
+    public void assertNotBool(String message) {
+        if (! (value instanceof Boolean)) {
+            throw new TypeCastException(message);
+        }
+    }
+
     public VariableContainer isEqual(VariableContainer a) {
         assertUnEqClass(value, a.getValue());
         Boolean result;
@@ -48,6 +52,8 @@ public class VariableContainer {
             result = (Integer) value == (Integer) a.getValue();
         } else if (value instanceof Float) {
             result = (Float) value == (Float) a.getValue();
+        } else if (value instanceof Boolean) {
+            result = (Boolean) value == (Boolean) a.getValue();
         } else {
             throw new TypeCastException("Bad operand for =.");
         }
@@ -83,17 +89,13 @@ public class VariableContainer {
 
     public VariableContainer logicOr(VariableContainer a) {
         assertUnEqClass(value, a.getValue());
-        if (!(value instanceof Boolean)) {
-            throw new TypeCastException("Can't cast to BOOLEAN in OR operator.");
-        }
+        assertNotBool("Can't cast to BOOLEAN in | operator.");
         return new VariableContainer((Boolean) a.getValue() || (Boolean) value);
     }
 
     public VariableContainer logicAnd(VariableContainer a) {
         assertUnEqClass(value, a.getValue());
-        if (!(value instanceof Boolean)) {
-            throw new TypeCastException("Can't cast to BOOLEAN in OR operator.");
-        }
+        assertNotBool("Can't cast to BOOLEAN in & operator.");
         return new VariableContainer((Boolean) a.getValue() && (Boolean) value);
     }
 
@@ -152,5 +154,11 @@ public class VariableContainer {
             return new VariableContainer((Integer) value % (Integer) a.getValue());
         }
         throw new TypeCastException("No 'MOD' operator for this type.");
+    }
+}
+
+class TypeCastException extends RuntimeException {
+    public TypeCastException(String message) {
+        super(message);
     }
 }

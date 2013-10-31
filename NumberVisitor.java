@@ -210,12 +210,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     }
 
     @Override 
-    public VariableContainer visitDeclarationsequence(OberonParser.DeclarationsequenceContext ctx) { 
-        //TODO: Add posibility to make local variable.
-        return visitChildren(ctx); 
-    }
-
-    @Override 
     public VariableContainer visitVariabledeclaration(OberonParser.VariabledeclarationContext ctx) { 
         OberonParser.TypeContext type = ctx.type();
         List<OberonParser.IdentdefContext> varLst = ctx.identlist().identdef();
@@ -256,15 +250,12 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     public VariableContainer visitWhilestatement(OberonParser.WhilestatementContext ctx) { 
         OberonParser.ExpressionContext exp = ctx.expression();
         OberonParser.StatementsequenceContext loop = ctx.statementsequence();
-        while (true) {
-            Object result = visit(exp).getValue();
-            Boolean isBool = result instanceof Boolean;
-            if (isBool && !(Boolean) result) {
-                break;
-            } else if (!isBool) {
-                throw new TypeCastException("Can't cast while expression to BOOLEAN.");
-            }
+        Boolean doNext = true;
+        while (doNext) {
             visit(loop);
+            VariableContainer result = visit(exp);
+            result.assertNotBool("Can't cast while expression to BOOLEAN.");
+            doNext = (Boolean) result.getValue();
         }
         return null;
     }
@@ -273,16 +264,13 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     public VariableContainer visitRepeatstatement(OberonParser.RepeatstatementContext ctx) { 
         OberonParser.ExpressionContext exp = ctx.expression();
         OberonParser.StatementsequenceContext loop = ctx.statementsequence();
+        Boolean doNext = true;
         do {
             visit(loop);
-            Object result = visit(exp).getValue();
-            Boolean isBool = result instanceof Boolean;
-            if (isBool && !(Boolean) result) {
-                break;
-            } else if (!isBool) {
-                throw new TypeCastException("Can't cast repeat expression to BOOLEAN.");
-            }
-        } while (true);
+            VariableContainer result = visit(exp);
+            result.assertNotBool("Can't cast repeat expression to BOOLEAN.");
+            doNext = (Boolean) result.getValue();
+        } while (doNext);
         return null; 
     }
 
@@ -291,13 +279,11 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         List<OberonParser.ExpressionContext> expr = ctx.expression();
         List<OberonParser.StatementsequenceContext> statement = ctx.statementsequence();
         for (int i = 0; i < expr.size(); i++) {
-            Object result = visit(expr.get(i)).getValue();
-            Boolean isBool = result instanceof Boolean;
-            if (isBool && (Boolean) result) {
+            VariableContainer result = visit(expr.get(i));
+            result.assertNotBool("Can't cast if expression to BOOLEAN.");
+            if ((Boolean) result.getValue()) {
                 visit(statement.get(i));
                 break;
-            } else if (!isBool) {
-                throw new TypeCastException("Can't cast if expression to BOOLEAN.");
             }
             //If all else-if failed and else exist, go to else
             if (i != statement.size() - 1 && i == expr.size() - 1) {
@@ -312,12 +298,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
 
 class ThisFunctionalityDoesNotSupport extends RuntimeException {
     public ThisFunctionalityDoesNotSupport(String message) {
-        super(message);
-    }
-}
-
-class TypeCastException extends RuntimeException {
-    public TypeCastException(String message) {
         super(message);
     }
 }

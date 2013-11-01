@@ -1,6 +1,7 @@
 import oberon.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -31,6 +32,27 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         memory.put(name, new VariableContainer(new Object()));
         return visitChildren(ctx); 
     }
+
+    @Override 
+    public VariableContainer visitSet(OberonParser.SetContext ctx) {
+        List<VariableContainer> set = new ArrayList<VariableContainer>();
+        if (ctx.caselabellist() != null) {
+            List<VariableContainer> segments = (List<VariableContainer>) visit(ctx.caselabellist()).getValue();
+            for(int j = 0; j < segments.size(); j++) {
+                VariableContainer caseitem = segments.get(j);
+                if (caseitem.getValue() instanceof Range) {
+                    Range r = (Range) caseitem.getValue();
+                    for (int i = r.left(); i <= r.right(); ++i) {
+                        set.add(new VariableContainer(i));
+                    }
+                } else {
+                    set.add(caseitem);
+                }
+            }
+        }
+        return new VariableContainer(set); 
+    }
+
 
     @Override 
     public VariableContainer visitAnint(OberonParser.AnintContext ctx) { 
@@ -176,7 +198,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
                 case OberonParser.GREATEROREQ:
                     return result.isLess(nextVal).not();
                 case OberonParser.IN:
-                    throw new ThisFunctionalityDoesNotSupport("Operator IN doesn't support.");
+                    return result.in(nextVal);
             }
         }
         return result; 
@@ -219,7 +241,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
                 defVal = 0;
                 break;
             case "REAL":
-                defVal = 0.0;
+                defVal = 0.0f;
                 break;
             case "BOOLEAN":
                 defVal = false;

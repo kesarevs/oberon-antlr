@@ -1,6 +1,9 @@
 import oberon.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.lang.Exception;
+import java.util.HashSet;
 
 public class VariableContainer {
     private Object value;
@@ -45,13 +48,31 @@ public class VariableContainer {
         }
     }
 
+    public void assertNotList(String message) {
+        if (! (value instanceof List)) {
+            throw new TypeCastException(message);
+        }
+    }
+
+    public VariableContainer in(VariableContainer a) {
+        a.assertNotList("Bad operands for IN operator.");
+        List<VariableContainer> set = (List<VariableContainer>) a.getValue();
+        for (int i = 0; i < set.size(); i++) {
+            VariableContainer item = set.get(i);
+            if ((Boolean) isEqual(item).getValue()) {
+                return new VariableContainer(true);
+            }
+        }
+        return new VariableContainer(false);
+    }
+
     public VariableContainer isEqual(VariableContainer a) {
         assertUnEqClass(value, a.getValue());
         Boolean result;
         if (value instanceof Integer) {
             result = (Integer) value == (Integer) a.getValue();
         } else if (value instanceof Float) {
-            result = (Float) value == (Float) a.getValue();
+            result = Math.abs((Float) value - (Float) a.getValue()) < 1e-6;
         } else if (value instanceof Boolean) {
             result = (Boolean) value == (Boolean) a.getValue();
         } else {

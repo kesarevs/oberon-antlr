@@ -17,6 +17,14 @@ public class Range {
     public Boolean contains(Integer a) {
         return a >= left && a <= right;
     }
+
+    public Integer left() {
+        return left;
+    }
+
+    public Integer right() {
+        return right;
+    }
 }
 
 class BadRangeBorders extends RuntimeException {

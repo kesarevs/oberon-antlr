@@ -1,29 +1,120 @@
-СписокИмпорта    = IMPORT [идент ":="] идент {"," [идент ":="] идент} ";".
+// The keywords
+K_BEGIN : 'BEGIN';
+K_EXIT : 'EXIT' ;
+K_IMPORT : 'IMPORT' ;
+K_LOOP : 'LOOP' ;
+K_MODULE : 'MODULE' ;
+K_NIL : 'NIL' ;
+K_OF : 'OF' ;
+K_POINTER : 'POINTER' ;
+K_PROCEDURE : 'PROCEDURE' ;
+K_RECORD : 'RECORD' ;
+K_RETURN : 'RETURN';
+K_TO : 'TO' ;
+K_TYPE : 'TYPE' ;
+K_WITH : 'WITH' ;
 
-ПослОбъявл       = { CONST {ОбъявлКонст ";" } | TYPE {ОбъявлТипа ";" } | VAR {ОбъявлПерем ";" }} {ОбъявлПроц ";" | ОпережающееОбъяв";"}.
+PERIOD : '.' ;
+RANGESEP : '..' ;
+SEMI : ';' ;
+UPCHAR : '^' ;
+COLON : ':' ;
+COMMA : ',' ;
 
-ОбъявлПроц       = PROCEDURE [Приемник] ИдентОпр [ФормальныеПарам]";" ПослОбъявл [BEGIN ПослОператоров] END идент.
-ОпережающееОбъяв = PROCEDURE "^" [Приемник] ИдентОпр [ФормальныеПарам].
-ФормальныеПарам  = "(" [СекцияФП {";" СекцияФП}] ")" [":" УточнИдент].
-СекцияФП         = [VAR] идент {"," идент} ":" Тип.
-Приемник         = "(" [VAR] идент ":" идент ")".
-Тип              = УточнИдент | ARRAY [КонстВыраж {"," КонстВыраж}] OF Тип
-  | RECORD ["("УточнИдент")"] СписокПолей {";" СписокПолей} END | POINTER TO Тип | PROCEDURE [ФормальныеПарам].
-СписокПолей      = [СписокИдент ":" Тип].
-ПослОператоров   = Оператор {";" Оператор}.
-Оператор         = [  Обозначение ["(" [СписокВыраж] ")"]
-  | LOOP ПослОператоров END
-  | WITH Охрана DO ПослОператоров END
-  | EXIT
-  | RETURN [Выраж] ].
-Охрана           = УточнИдент ":" УточнИдент.
-Множитель        = Обозначение ["(" [СписокВыраж] ")"] | символ | строка | NIL | Множество
-  | "(" Выраж ")" | " ~ " Множитель.
-Множество        = "{" [Элемент {"," Элемент}] "}".
-Элемент          = Выраж [".." Выраж].
-Отношение        = IN | IS.
-Обозначение      = УточнИдент {"." идент | "[" СписокВыраж "]" | "^" | "(" УточнИдент ")"}.
-СписокВыраж      = Выраж {"," Выраж}.
-СписокИдент      = ИдентОпр {"," ИдентОпр}.
-УточнИдент       = [идент "."] идент.
-ИдентОпр         = идент [ "*" | "-" ].
+stringliteral : '"' ~('\\'|'"')* '"' ;
+
+// declaration
+declarationsequence :
+        | K_TYPE (typedeclaration SEMI)*
+        (proceduredeclaration SEMI | forwarddeclaration SEMI)*
+        ;
+
+typedeclaration: ID EQUAL type ;
+
+identdef: ID ;
+identlist: identdef (COMMA identdef)* ;
+
+type :    arraytype 
+        | recordtype 
+        | pointertype 
+        | proceduretype ;
+
+arraytype: K_ARRAY expression K_OF type;
+recordtype: K_RECORD ('(' qualident ')')? fieldlistsequence K_END ;
+pointertype: K_POINTER K_TO type ;
+proceduretype: K_PROCEDURE formalparameters? ;
+
+//procedure
+proceduredeclaration: procedureheading SEMI procedurebody ID ;
+
+procedureheading: K_PROCEDURE MULT? identdef formalparameters? ;
+procedurebody: declarationsequence (K_BEGIN statementsequence)? K_END ;
+
+
+//loops
+loopstatement: K_LOOP statementsequence K_END ;
+
+
+casestatement: K_CASE expression K_OF caseitem ('|' caseitem)*
+    (K_ELSE statementsequence)? K_END ;
+
+module : K_MODULE ID SEMI importlist? declarationsequence?
+    (K_BEGIN statementsequence)? K_END ID PERIOD ;
+
+importlist : K_IMPORT importitem (COMMA importitem)* SEMI ;
+
+importitem : ID (ASSIGN ID)? ;
+
+factor:   stringliteral
+        | K_NIL
+        | set
+        | designator ('(' explist? ')')?
+        | '(' simpleexpression ')'
+        ;
+
+set: '{' caselabellist? '}' ;
+
+designator: qualident
+    ('[' explist ']'
+        | '(' qualident ')'
+        | UPCHAR )* ;
+
+explist: expression (COMMA expression)* ;
+
+actualparameters: '(' explist? ')' ;
+
+qualident: (ID '.')* ID ;
+
+fieldlistsequence: fieldlist (SEMI fieldlist) ;
+
+fieldlist: (identlist COLON type)? ;
+
+formalparameters: '(' params? ')' (COLON qualident)? ;
+
+params: fpsection (SEMI fpsection)* ;
+
+fpsection: K_VAR? idlist COLON formaltype ;
+
+idlist: ID (COMMA ID)* ;
+
+formaltype: (K_ARRAY K_OF)* (qualident | proceduretype);
+
+forwarddeclaration: K_PROCEDURE UPCHAR? ID MULT? formalparameters? ;
+
+statementsequence: statement SEMI (statement SEMI)* ;
+
+statement:    procedurecall
+            | loopstatement
+            | withstatement 
+            | K_EXIT
+            | K_RETURN expression?
+            ;
+
+procedurecall: designator actualparameters? ;
+
+withstatement: K_WITH qualident COLON qualident K_DO statementsequence K_END ;
+
+
+
+WS : ( ' ' | '\t' | '\r' | '\n') -> skip;
+

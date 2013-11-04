@@ -1,0 +1,46 @@
+MODULE PowersOf2;
+    CONST M = 11; N = 32;
+    VAR i, j, k, exp, c, r, t: INTEGER;
+    d: ARRAY M OF INTEGER;
+    f: ARRAY N OF INTEGER;
+BEGIN 
+    d[0] := 1;
+    k := 1;
+    exp := 1;
+    WHILE exp < N DO
+        c := 0;
+        i := 0;
+        WHILE i < k - 1 DO
+            t := 2*d[i] + c;
+            IF t >= 10 THEN 
+                d[i] := t - 10; 
+                c := 1;
+            ELSE 
+                d[i] := t; 
+                c := 0; 
+            END; 
+            i := i + 1;
+        END;
+        IF c > 0 THEN 
+            d[k] := 1; 
+            k := k + 1;
+        END;
+        i := M;
+        REPEAT 
+            i := i - 1; 
+        UNTIL i # k;
+        REPEAT 
+            i := i - 1;
+        UNTIL i # 0;
+        r := 0;
+        j := 1;
+        WHILE j < exp DO
+            r := 10*r + f[j]; 
+            f[j] := r DIV 2;
+            r := r MOD 2;
+            j := j + 1;
+        END;
+        f[exp] := 5; 
+        exp := exp + 1;
+    END;
+END PowersOf2.

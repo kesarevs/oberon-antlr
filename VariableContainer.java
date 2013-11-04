@@ -5,56 +5,95 @@ import java.util.List;
 import java.lang.Exception;
 import java.util.HashSet;
 
-public class VariableContainer {
-    private Object value;
+public class VariableContainer implements Cloneable {
+
+    private Integer myInt;
+    private Boolean myBool;
+    private Float myReal;
+    private Object myObject;
+    private ArrayList<VariableContainer> myList;
+
+    private Type type; 
+
+    public VariableContainer(Range value) {
+        type = Type.RANGE;
+        myObject = value;
+    }
+
+    public VariableContainer(ArrayList<VariableContainer> value) {
+        type = Type.LIST;
+        myList = value;
+    }
 
     public VariableContainer(Object value) {
-        this.value = value;
+        type = Type.OBJECT;
+        myObject = value;
     }
 
-    public VariableContainer negative() {
-        if (value instanceof Integer) {
-            return new VariableContainer(- (Integer) value);
-        } else if (value instanceof Float) {
-            return new VariableContainer(- (Float) value);
-        } else {
-            throw new TypeCastException("Can't cast to number.");
-        }
+    public VariableContainer(Integer value) {
+        type = Type.INT;
+        myObject = value;
+        myInt = value;
     }
 
-    public VariableContainer not() {
-        assertNotBool("Boolean expected.");
-        return new VariableContainer(!((Boolean) value));
+    public VariableContainer(Boolean value) {
+        type = Type.BOOL;
+        myObject = value;
+        myBool = value;
+    }
+
+    public VariableContainer(Float value) {
+        type = Type.REAL;
+        myObject = value;
+        myReal = value;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     public Object getValue() {
-        return value;
+        return myObject;
+    }
+
+    public ArrayList<VariableContainer> getList() {
+        assertNotList("");
+        return myList;
+    }
+
+    public Integer getInt() {
+        assertNotInt("");
+        return myInt;
+    }
+
+    public Boolean getBool() {
+        assertNotBool("");
+        return myBool;
+    }
+
+    public Float getReal() {
+        assertNotReal("");
+        return myReal;
     }
 
     public void setValue(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
-        value = a.getValue();
-    }
-
-    private void assertUnEqClass(Object a, Object b) {
-        if (a.getClass() != b.getClass()) {
-            throw new TypeCastException("Differente type finded.");
+        assertUnEqClass(a);
+        switch (type) {
+            case INT:
+                myInt = a.getInt();
+                break;
+            case REAL:
+                myReal = a.getReal();
+                break;
+            case BOOL: 
+                myBool = a.getBool();
+                break;
         }
-    }
-
-    public void assertNotBool(String message) {
-        if (! (value instanceof Boolean)) {
-            throw new TypeCastException(message);
-        }
-    }
-
-    public void assertNotList(String message) {
-        if (! (value instanceof List)) {
-            throw new TypeCastException(message);
-        }
+        myObject = a.getValue();
     }
 
     public VariableContainer in(VariableContainer a) {
+        /*
         a.assertNotList("Bad operands for IN operator.");
         List<VariableContainer> set = (List<VariableContainer>) a.getValue();
         for (int i = 0; i < set.size(); i++) {
@@ -62,119 +101,208 @@ public class VariableContainer {
             if ((Boolean) isEqual(item).getValue()) {
                 return new VariableContainer(true);
             }
-        }
+        }*/
         return new VariableContainer(false);
     }
 
     public VariableContainer isEqual(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
+        assertUnEqClass(a);
         Boolean result;
-        if (value instanceof Integer) {
-            result = (Integer) value == (Integer) a.getValue();
-        } else if (value instanceof Float) {
-            result = Math.abs((Float) value - (Float) a.getValue()) < 1e-6;
-        } else if (value instanceof Boolean) {
-            result = (Boolean) value == (Boolean) a.getValue();
-        } else {
-            throw new TypeCastException("Bad operand for =.");
+        switch (type) {
+            case INT:
+                result = myInt == a.getInt();
+                break;
+            case REAL:
+                result = myReal == a.getReal();
+                break;
+            case BOOL: 
+                result = myBool == a.getBool();
+                break;
+            default:
+                throw new TypeCastException("Bad operand for =.");
         }
         return new VariableContainer(result);
     }
 
     public VariableContainer isLess(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
+        assertUnEqClass(a);
         Boolean result;
-        if (value instanceof Integer) {
-            result = (Integer) value < (Integer) a.getValue();
-        } else if (value instanceof Float) {
-            result = (Float) value < (Float) a.getValue();
-        } else {
-            throw new TypeCastException("Bad operand for <.");
+        switch (type) {
+            case INT:
+                result = myInt < a.getInt();
+                break;
+            case REAL:
+                result = myReal < a.getReal();
+                break;
+            default:
+                throw new TypeCastException("Bad operand for <.");
         }
         return new VariableContainer(result);
     }
 
     public VariableContainer isGreater(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
+        assertUnEqClass(a);
         Boolean result;
-        if (value instanceof Integer) {
-            result = (Integer) value > (Integer) a.getValue();
-        } else if (value instanceof Float) {
-            result = (Float) value > (Float) a.getValue();
-        } else {
-            throw new TypeCastException("Bad operand for >.");
+        switch (type) {
+            case INT:
+                result = myInt > a.getInt();
+                break;
+            case REAL:
+                result = myReal > a.getReal();
+                break;
+            default:
+                throw new TypeCastException("Bad operand for >.");
         }
         return new VariableContainer(result);
     }
 
 
     public VariableContainer logicOr(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
+        assertUnEqClass(a);
         assertNotBool("Can't cast to BOOLEAN in | operator.");
-        return new VariableContainer((Boolean) a.getValue() || (Boolean) value);
+        return new VariableContainer(a.getBool() || myBool);
     }
 
     public VariableContainer logicAnd(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
+        assertUnEqClass(a);
         assertNotBool("Can't cast to BOOLEAN in & operator.");
-        return new VariableContainer((Boolean) a.getValue() && (Boolean) value);
+        return new VariableContainer(a.getBool() && myBool);
+    }
+
+    public VariableContainer not() {
+        assertNotBool("Boolean expected.");
+        return new VariableContainer(!myBool);
+    }
+
+    public VariableContainer negative() {
+        switch (type) {
+            case INT:
+                return new VariableContainer(- myInt);
+            case REAL:
+                return new VariableContainer(- myReal);
+            default: 
+                throw new TypeCastException("Can't cast to number.");
+        }
     }
 
     public VariableContainer multiply(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
-        if (value instanceof Integer) {
-            return new VariableContainer((Integer) a.getValue() * (Integer) value);
+        assertUnEqClass(a);
+        switch (type) {
+            case INT:
+                return new VariableContainer(myInt * a.getInt());
+            case REAL:
+                return new VariableContainer(myReal * a.getReal());
+            default:
+                throw new TypeCastException("No '*' operator for this type.");
         }
-        if (value instanceof Float) {
-            return new VariableContainer((Float) a.getValue() * (Float) value);
-        }
-        throw new TypeCastException("No '*' operator for this type.");
     }
 
     public VariableContainer divide(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
-        if (value instanceof Float) {
-            return new VariableContainer((Float) value / (Float) a.getValue());
+        assertUnEqClass(a);
+        if (type == Type.REAL) {
+            return new VariableContainer(myReal / a.getReal());
         }
         throw new TypeCastException("No '/' operator for this type.");
     }
 
     public VariableContainer sum(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
-        if (value instanceof Integer) {
-            return new VariableContainer((Integer) a.getValue() + (Integer) value);
+        assertUnEqClass(a);
+        switch (type) {
+            case INT:
+                return new VariableContainer(myInt + a.getInt());
+            case REAL:
+                return new VariableContainer(myReal + a.getReal());
+            default:
+                throw new TypeCastException("No '+' operator for this type.");
         }
-        if (value instanceof Float) {
-            return new VariableContainer((Float) a.getValue() + (Float) value);
-        }
-        throw new TypeCastException("No '+' operator for this type.");
     }
 
     public VariableContainer difference(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
-        if (value instanceof Integer) {
-            return new VariableContainer((Integer) value - (Integer) a.getValue());
+        assertUnEqClass(a);
+        switch (type) {
+            case INT:
+                return new VariableContainer(myInt - a.getInt());
+            case REAL:
+                return new VariableContainer(myReal - a.getReal());
+            default:
+                throw new TypeCastException("No '+' operator for this type.");
         }
-        if (value instanceof Float) {
-            return new VariableContainer((Float) value - (Float) a.getValue());
-        }
-        throw new TypeCastException("No '-' operator for this type.");
     }
 
     public VariableContainer div(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
-        if (value instanceof Integer) {
-            return new VariableContainer((Integer) value / (Integer) a.getValue());
+        assertUnEqClass(a);
+        if (type == Type.INT) {
+            return new VariableContainer(myInt / a.getInt());
         }
         throw new TypeCastException("No 'DIV' operator for this type.");
     }
 
     public VariableContainer mod(VariableContainer a) {
-        assertUnEqClass(value, a.getValue());
-        if (value instanceof Integer) {
-            return new VariableContainer((Integer) value % (Integer) a.getValue());
+        assertUnEqClass(a);
+        if (type == Type.INT) {
+            return new VariableContainer(myInt % a.getInt());
         }
         throw new TypeCastException("No 'MOD' operator for this type.");
+    }
+
+    public String toString() {
+        switch (type) {
+            case INT:
+                return String.valueOf(myInt);
+            case REAL:
+                return String.valueOf(myReal);
+            case BOOL: 
+                return String.valueOf(myBool);
+            case LIST:
+                return String.valueOf(myList);
+        }
+        return String.valueOf(myObject);
+    }
+
+    @Override
+    protected VariableContainer clone() {
+        VariableContainer cloned = null;
+        try {
+            cloned = (VariableContainer) super.clone();
+            if (cloned.getType() == Type.LIST) {
+                ArrayList<VariableContainer> clonedLst = new ArrayList<VariableContainer>();
+                for(VariableContainer item: cloned.myList) {
+                    clonedLst.add(item.clone());
+                }
+                cloned.myList = clonedLst;
+            }
+        } catch (CloneNotSupportedException ex) {}
+        return cloned;
+    }
+
+    private void assertUnEqClass(VariableContainer a) {
+        if (type != a.getType()) {
+            throw new TypeCastException("Differente type finded.");
+        }
+    }
+
+    public void assertNotBool(String message) {
+        if (type != Type.BOOL) {
+            throw new TypeCastException(message);
+        }
+    }
+
+    public void assertNotInt(String message) {
+        if (type != Type.INT) {
+            throw new TypeCastException(message);
+        }
+    }
+
+    public void assertNotReal(String message) {
+        if (type != Type.REAL) {
+            throw new TypeCastException(message);
+        }
+    }
+
+    public void assertNotList(String message) {
+        if (type != Type.LIST) {
+            throw new TypeCastException(message);
+        }
     }
 }
 
@@ -183,3 +311,5 @@ class TypeCastException extends RuntimeException {
         super(message);
     }
 }
+
+enum Type { INT, REAL, BOOL, OBJECT, LIST, RANGE };

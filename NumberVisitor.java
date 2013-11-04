@@ -28,16 +28,18 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
             throw new ModuleNotFoundException("Error: \"End " + nameAtTheEnd + ".\"\nExpected: \"End " + name + ".\"");
         }
         //TODO: Add reference on module class.
-        //make const
-        memory.put(name, new VariableContainer(new Object()));
+        memory.put(name, new ConstVariableContainer(new Object()));
         return visitChildren(ctx); 
     }
 
+/*
     @Override 
     public VariableContainer visitSet(OberonParser.SetContext ctx) {
-        List<VariableContainer> set = new ArrayList<VariableContainer>();
+        //TODO: This set is like real set. We need oberon set. I don't understand what is it. add operators for set (+, -, *, /)
+        //http://www.inf.ethz.ch/personal/wirth/Articles/Oberon/SETs.pdf
+        ArrayList<VariableContainer> set = new ArrayList<VariableContainer>();
         if (ctx.caselabellist() != null) {
-            List<VariableContainer> segments = (List<VariableContainer>) visit(ctx.caselabellist()).getValue();
+            ArrayList<VariableContainer> segments = (ArrayList<VariableContainer>) visit(ctx.caselabellist()).getValue();
             for(int j = 0; j < segments.size(); j++) {
                 VariableContainer caseitem = segments.get(j);
                 if (caseitem.getValue() instanceof Range) {
@@ -52,7 +54,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         }
         return new VariableContainer(set); 
     }
-
+*/
 
     @Override 
     public VariableContainer visitAnint(OberonParser.AnintContext ctx) { 
@@ -78,17 +80,16 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     public VariableContainer visitCasestatement(OberonParser.CasestatementContext ctx) { 
         VariableContainer result = visit(ctx.expression());
         List<OberonParser.CaseitemContext> caseitems = ctx.caseitem();
-        for (int i = 0; i < caseitems.size(); i++) {
-            List<VariableContainer> segments = (List<VariableContainer>) visit(caseitems.get(i).caselabellist()).getValue();
-            for(int j = 0; j < segments.size(); j++) {
-                VariableContainer caseitem = segments.get(j);
-                if (caseitem.getValue() instanceof Range && result.getValue() instanceof Integer) {
+        for (OberonParser.CaseitemContext it : caseitems) {
+            ArrayList<VariableContainer> segments = visit(it.caselabellist()).getList();
+            for(VariableContainer caseitem : segments) {
+                if (caseitem.getValue() instanceof Range && result.getType() == Type.INT) {
                     Range r = (Range) caseitem.getValue();
-                    if (r.contains((Integer) result.getValue())) {
-                        return visit(caseitems.get(i).statementsequence());
+                    if (r.contains(result.getInt())) {
+                        return visit(it.statementsequence());
                     }
-                } else if ((Boolean) result.isEqual(caseitem).getValue()) {
-                    return visit(caseitems.get(i).statementsequence());
+                } else if (result.isEqual(caseitem).getBool()) {
+                    return visit(it.statementsequence());
                 }
             }
         }
@@ -101,9 +102,9 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     @Override 
     public VariableContainer visitCaselabellist(OberonParser.CaselabellistContext ctx) { 
         List<OberonParser.CaselabelsContext> labels = ctx.caselabels();
-        List<VariableContainer> segments = new ArrayList<VariableContainer>();
-        for(int i = 0; i < labels.size(); i++) {
-            segments.add(visit(labels.get(i)));
+        ArrayList<VariableContainer> segments = new ArrayList<VariableContainer>();
+        for(OberonParser.CaselabelsContext l : labels) {
+            segments.add(visit(l));
         }
         return new VariableContainer(segments); 
     }
@@ -111,16 +112,16 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     @Override 
     public VariableContainer visitCaselabels(OberonParser.CaselabelsContext ctx) { 
         List<OberonParser.ExpressionContext> expr = ctx.expression();
-        Object result = visit(expr.get(0)).getValue();
+        VariableContainer result = visit(expr.get(0));
         if (ctx.RANGESEP() != null) {
-            Object nextRang = visit(expr.get(1)).getValue();
-            if (result instanceof Integer && nextRang instanceof Integer) {
-                return new VariableContainer(new Range((Integer) result, (Integer) nextRang));
+            VariableContainer nextRang = visit(expr.get(1));
+            if (result.getType() == Type.INT && nextRang.getType() == Type.INT) {
+                return new VariableContainer(new Range(result.getInt(), nextRang.getInt()));
             } else {
                 throw new TypeCastException("Can't cast variable to INTEGER in CASE range.");
             }
         }
-        return new VariableContainer(result); 
+        return result; 
     }
 
     @Override 
@@ -205,30 +206,63 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     }
 
     @Override 
-    public VariableContainer visitFactor(OberonParser.FactorContext ctx) {
-        if (ctx.simpleexpression() != null) {
-            return visit(ctx.simpleexpression());
+    public VariableContainer visitDesignator(OberonParser.DesignatorContext ctx) { 
+        String varName = ctx.qualident(0).getText();
+        if (!memory.containsKey(varName)) {
+            throw new VariableNotDeclaredException("Variable " + varName + " is not declared.");
         }
-        if (ctx.designator() != null) {
-            String varName = ctx.designator().getText();
-            if (!memory.containsKey(varName)) {
-                throw new VariableNotDeclaredException("Variable " + varName + " is not declared.");
+        VariableContainer element = memory.get(varName);
+        if (ctx.isArray != null) {
+            for (OberonParser.ExplistContext d : ctx.explist()) {
+                for (OberonParser.ExpressionContext expr : d.expression()) {
+                    Integer dimension = visit(expr).getInt();
+                    element = element.getList().get(dimension);
+                }
             }
-            return memory.get(varName);
         }
-        return visitChildren(ctx); 
+        return element;
     }
 
     @Override 
     public VariableContainer visitAssignment(OberonParser.AssignmentContext ctx) {
         VariableContainer result = visit(ctx.expression());
-        String varName = ctx.designator().getText();
-        if (!memory.containsKey(varName)) {
-            throw new VariableNotDeclaredException("Variable " + varName + " is not declared.");
-        }
-        memory.get(varName).setValue(result);
-        System.out.println(varName + " := " + result.getValue());
+        VariableContainer var = visit(ctx.designator());
+        var.setValue(result);
+        System.out.println(ctx.designator().getText() + " := " + var.getValue());
         return result;
+    }
+    
+    public ArrayList<VariableContainer> createArray(Integer len, VariableContainer defVal) {
+        ArrayList<VariableContainer> arr = new ArrayList<VariableContainer>();
+        for(int i = 0; i < len; i++) {
+            arr.add(defVal.clone());
+        }
+        return arr;
+    }
+
+    @Override 
+    public VariableContainer visitArraytype(OberonParser.ArraytypeContext ctx) { 
+        List<OberonParser.ExpressionContext> sizeCont = ctx.explist().expression();
+        VariableContainer defVal ;
+        switch (ctx.type().getText()) {
+            case "INTEGER":
+                defVal = new VariableContainer(0);
+                break;
+            case "REAL":
+                defVal = new VariableContainer(0f);
+                break;
+            case "BOOLEAN":
+                defVal = new VariableContainer(false);
+                break;
+            default:
+                throw new ThisFunctionalityDoesNotSupport("");
+        }
+        for(int i = sizeCont.size() - 1; i >= 0; i--) {
+            VariableContainer dimension = visit(sizeCont.get(i));
+            dimension.assertNotInt("Only INTEGER expression can set ARRAY demension.");
+            defVal = new VariableContainer(createArray(dimension.getInt(), defVal));
+        }
+        return defVal;
     }
 
     @Override 
@@ -236,23 +270,25 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         OberonParser.TypeContext type = ctx.type();
         List<OberonParser.IdentdefContext> varLst = ctx.identlist().identdef();
         Object defVal = 0;
-        switch (ctx.type().getText()) {
-            case "INTEGER":
-                defVal = 0;
-                break;
-            case "REAL":
-                defVal = 0.0f;
-                break;
-            case "BOOLEAN":
-                defVal = false;
-                break;
-        }
-        for(int i = 0; i < varLst.size(); i++) {
-            String varName = varLst.get(i).getText();
+        for(OberonParser.IdentdefContext var : varLst) {
+            String varName = var.getText();
             if (memory.containsKey(varName)) {
                 throw new VariableDeclarationException("Variable " + varName + " already declared.");
             }
-            memory.put(varName, new VariableContainer(defVal));
+            switch (ctx.type().getText()) {
+                case "INTEGER":
+                    memory.put(varName, new VariableContainer(0));
+                    break;
+                case "REAL":
+                    memory.put(varName, new VariableContainer(0f));
+                    break;
+                case "BOOLEAN":
+                    memory.put(varName, new VariableContainer(false));
+                    break;
+            }
+            if (ctx.type().isArr != null) {
+                memory.put(varName, visit(ctx.type().isArr));
+            }
         }
         return null; 
     }
@@ -264,7 +300,17 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         if (memory.containsKey(varName)) {
             throw new VariableDeclarationException("Variable " + varName + " already declared.");
         }
-        memory.put(varName, new ConstVariableContainer(val.getValue()));
+        switch (val.getType()) {
+            case INT:
+                memory.put(varName, new ConstVariableContainer(val.getInt()));
+                break;
+            case REAL:
+                memory.put(varName, new ConstVariableContainer(val.getReal()));
+                break;
+            case BOOL:
+                memory.put(varName, new ConstVariableContainer(val.getBool()));
+                break;
+        }
         return val;
     }
 
@@ -277,7 +323,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
             visit(loop);
             VariableContainer result = visit(exp);
             result.assertNotBool("Can't cast while expression to BOOLEAN.");
-            doNext = (Boolean) result.getValue();
+            doNext = result.getBool();
         }
         return null;
     }
@@ -291,7 +337,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
             visit(loop);
             VariableContainer result = visit(exp);
             result.assertNotBool("Can't cast repeat expression to BOOLEAN.");
-            doNext = (Boolean) result.getValue();
+            doNext = result.getBool();
         } while (doNext);
         return null; 
     }
@@ -303,7 +349,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         for (int i = 0; i < expr.size(); i++) {
             VariableContainer result = visit(expr.get(i));
             result.assertNotBool("Can't cast if expression to BOOLEAN.");
-            if ((Boolean) result.getValue()) {
+            if (result.getBool()) {
                 visit(statement.get(i));
                 break;
             }

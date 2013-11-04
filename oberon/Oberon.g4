@@ -113,11 +113,15 @@ variabledeclaration: identlist COLON type ;
 identdef: ID ;
 identlist: identdef (COMMA identdef)* ;
 
-type : baseTypes | arraytype | recordtype | pointertype | proceduretype ;
+type :    baseTypes 
+        | isArr=arraytype 
+        | recordtype 
+        | pointertype 
+        | proceduretype ;
 
 baseTypes : K_INTEGER | K_REAL | K_BOOL ;
 
-arraytype: K_ARRAY expression (',' expression) K_OF type;
+arraytype: K_ARRAY explist K_OF type;
 recordtype: K_RECORD ('(' qualident ')')? fieldlistsequence K_END ;
 pointertype: K_POINTER K_TO type ;
 proceduretype: K_PROCEDURE formalparameters? ;
@@ -157,8 +161,6 @@ importlist : K_IMPORT importitem (COMMA importitem)* SEMI ;
 
 importitem : ID (ASSIGN ID)? ;
 
-print : K_PRINT designator SEMI ;
-
 expression: simpleexpression (relation simpleexpression)? ;
 
 simpleexpression:  MINUS? term (addoperator term)* ;
@@ -181,7 +183,7 @@ factor:   anint
 set: '{' caselabellist? '}' ;
 
 designator: qualident
-    ('[' explist ']'
+    (isArray='[' explist ']'
         | '(' qualident ')'
         | UPCHAR )* ;
 
@@ -228,4 +230,4 @@ withstatement: K_WITH qualident COLON qualident K_DO statementsequence K_END ;
 
 
 WS : ( ' ' | '\t' | '\r' | '\n') -> skip;
-
+COMMENT : '(*' .*? '*)' -> skip;

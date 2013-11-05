@@ -75,7 +75,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         return new VariableContainer(false);
     }
 
-//TODO: Normal case.
     @Override 
     public VariableContainer visitCasestatement(OberonParser.CasestatementContext ctx) { 
         VariableContainer result = visit(ctx.expression());
@@ -83,13 +82,10 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         for (OberonParser.CaseitemContext it : caseitems) {
             ArrayList<VariableContainer> segments = visit(it.caselabellist()).getList();
             for(VariableContainer caseitem : segments) {
-                if (caseitem.getValue() instanceof Range && result.getType() == Type.INT) {
-                    Range r = (Range) caseitem.getValue();
-                    if (r.contains(result.getInt())) {
+                if (caseitem.getType() == Type.RANGE || result.isEqual(caseitem).getBool()) {
+                    if (caseitem.contains(result).getBool()) {
                         return visit(it.statementsequence());
                     }
-                } else if (result.isEqual(caseitem).getBool()) {
-                    return visit(it.statementsequence());
                 }
             }
         }
@@ -115,11 +111,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         VariableContainer result = visit(expr.get(0));
         if (ctx.RANGESEP() != null) {
             VariableContainer nextRang = visit(expr.get(1));
-            if (result.getType() == Type.INT && nextRang.getType() == Type.INT) {
-                return new VariableContainer(new Range(result.getInt(), nextRang.getInt()));
-            } else {
-                throw new TypeCastException("Can't cast variable to INTEGER in CASE range.");
-            }
+            return new VariableContainer(new Range(result, nextRang));
         }
         return result; 
     }
@@ -182,10 +174,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         if (operators != null) {
             VariableContainer nextVal = visit(values.get(1));
             switch(operators.op.getType()) {
-                /*
-                    todo:
-                    op=IN ;
-                */
                 case OberonParser.EQUAL:
                     return result.isEqual(nextVal);
                 case OberonParser.UNEQUAL:
@@ -199,7 +187,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
                 case OberonParser.GREATEROREQ:
                     return result.isLess(nextVal).not();
                 case OberonParser.IN:
-                    return result.in(nextVal);
+                    return nextVal.contains(result);
             }
         }
         return result; 
@@ -259,7 +247,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         }
         for(int i = sizeCont.size() - 1; i >= 0; i--) {
             VariableContainer dimension = visit(sizeCont.get(i));
-            dimension.assertNotInt("Only INTEGER expression can set ARRAY demension.");
+            dimension.assertNot(Type.INT);
             defVal = new VariableContainer(createArray(dimension.getInt(), defVal));
         }
         return defVal;
@@ -269,7 +257,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     public VariableContainer visitVariabledeclaration(OberonParser.VariabledeclarationContext ctx) { 
         OberonParser.TypeContext type = ctx.type();
         List<OberonParser.IdentdefContext> varLst = ctx.identlist().identdef();
-        Object defVal = 0;
         for(OberonParser.IdentdefContext var : varLst) {
             String varName = var.getText();
             if (memory.containsKey(varName)) {
@@ -300,17 +287,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         if (memory.containsKey(varName)) {
             throw new VariableDeclarationException("Variable " + varName + " already declared.");
         }
-        switch (val.getType()) {
-            case INT:
-                memory.put(varName, new ConstVariableContainer(val.getInt()));
-                break;
-            case REAL:
-                memory.put(varName, new ConstVariableContainer(val.getReal()));
-                break;
-            case BOOL:
-                memory.put(varName, new ConstVariableContainer(val.getBool()));
-                break;
-        }
+        memory.put(varName, new ConstVariableContainer(val));
         return val;
     }
 
@@ -321,9 +298,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         Boolean doNext = true;
         while (doNext) {
             visit(loop);
-            VariableContainer result = visit(exp);
-            result.assertNotBool("Can't cast while expression to BOOLEAN.");
-            doNext = result.getBool();
+            doNext = visit(exp).getBool();
         }
         return null;
     }
@@ -335,9 +310,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         Boolean doNext = true;
         do {
             visit(loop);
-            VariableContainer result = visit(exp);
-            result.assertNotBool("Can't cast repeat expression to BOOLEAN.");
-            doNext = result.getBool();
+            doNext = visit(exp).getBool();
         } while (doNext);
         return null; 
     }
@@ -348,15 +321,13 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         List<OberonParser.StatementsequenceContext> statement = ctx.statementsequence();
         for (int i = 0; i < expr.size(); i++) {
             VariableContainer result = visit(expr.get(i));
-            result.assertNotBool("Can't cast if expression to BOOLEAN.");
             if (result.getBool()) {
-                visit(statement.get(i));
-                break;
+                return visit(statement.get(i));
             }
-            //If all else-if failed and else exist, go to else
-            if (i != statement.size() - 1 && i == expr.size() - 1) {
-                visit(statement.get(i + 1));
-            }
+        }
+        //If all else-if failed and else exist, go to else
+        if (expr.size() != statement.size()) {
+            return visit(statement.get(statement.size() - 1));
         }
         return null;
     }

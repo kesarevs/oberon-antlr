@@ -12,17 +12,25 @@ public class VariableContainer implements Cloneable {
     private Float myReal;
     private Object myObject;
     private ArrayList<VariableContainer> myList;
+    private Range myRange;
 
     private Type type; 
 
     public VariableContainer(Range value) {
         type = Type.RANGE;
+        myRange = value;
         myObject = value;
     }
 
     public VariableContainer(ArrayList<VariableContainer> value) {
         type = Type.LIST;
         myList = value;
+        myObject = value;
+    }
+
+    public VariableContainer(VariableContainer value) {
+        type = value.getType();
+        setValue(value);
     }
 
     public VariableContainer(Object value) {
@@ -57,27 +65,33 @@ public class VariableContainer implements Cloneable {
     }
 
     public ArrayList<VariableContainer> getList() {
-        assertNotList("");
+        assertNot(Type.LIST);
         return myList;
     }
 
+    public Range getRange() {
+        assertNot(Type.RANGE);
+        return myRange;
+    }
+
+
     public Integer getInt() {
-        assertNotInt("");
+        assertNot(Type.INT);
         return myInt;
     }
 
     public Boolean getBool() {
-        assertNotBool("");
+        assertNot(Type.BOOL);
         return myBool;
     }
 
     public Float getReal() {
-        assertNotReal("");
+        assertNot(Type.REAL);
         return myReal;
     }
 
     public void setValue(VariableContainer a) {
-        assertUnEqClass(a);
+        assertNot(a.getType());
         switch (type) {
             case INT:
                 myInt = a.getInt();
@@ -88,25 +102,18 @@ public class VariableContainer implements Cloneable {
             case BOOL: 
                 myBool = a.getBool();
                 break;
+            case RANGE:
+                myRange = a.getRange();
+                break;
+            case LIST:
+                myList = a.getList();
+                break;
         }
         myObject = a.getValue();
     }
 
-    public VariableContainer in(VariableContainer a) {
-        /*
-        a.assertNotList("Bad operands for IN operator.");
-        List<VariableContainer> set = (List<VariableContainer>) a.getValue();
-        for (int i = 0; i < set.size(); i++) {
-            VariableContainer item = set.get(i);
-            if ((Boolean) isEqual(item).getValue()) {
-                return new VariableContainer(true);
-            }
-        }*/
-        return new VariableContainer(false);
-    }
-
     public VariableContainer isEqual(VariableContainer a) {
-        assertUnEqClass(a);
+        assertNot(a.getType());
         Boolean result;
         switch (type) {
             case INT:
@@ -125,7 +132,7 @@ public class VariableContainer implements Cloneable {
     }
 
     public VariableContainer isLess(VariableContainer a) {
-        assertUnEqClass(a);
+        assertNot(a.getType());
         Boolean result;
         switch (type) {
             case INT:
@@ -141,7 +148,7 @@ public class VariableContainer implements Cloneable {
     }
 
     public VariableContainer isGreater(VariableContainer a) {
-        assertUnEqClass(a);
+        assertNot(a.getType());
         Boolean result;
         switch (type) {
             case INT:
@@ -156,21 +163,33 @@ public class VariableContainer implements Cloneable {
         return new VariableContainer(result);
     }
 
+    public VariableContainer contains(VariableContainer a) {
+        Boolean result = false;
+        switch (type) {
+            case RANGE:
+                result = myRange.contains(a);
+                break;
+            default:
+                throw new TypeCastException("Bad operand for IN operator.");
+        }
+        return new VariableContainer(result);
+    }
+
 
     public VariableContainer logicOr(VariableContainer a) {
-        assertUnEqClass(a);
-        assertNotBool("Can't cast to BOOLEAN in | operator.");
+        assertNot(a.getType());
+        assertNot(Type.BOOL);
         return new VariableContainer(a.getBool() || myBool);
     }
 
     public VariableContainer logicAnd(VariableContainer a) {
-        assertUnEqClass(a);
-        assertNotBool("Can't cast to BOOLEAN in & operator.");
+        assertNot(a.getType());
+        assertNot(Type.BOOL);
         return new VariableContainer(a.getBool() && myBool);
     }
 
     public VariableContainer not() {
-        assertNotBool("Boolean expected.");
+        assertNot(Type.BOOL);
         return new VariableContainer(!myBool);
     }
 
@@ -186,7 +205,7 @@ public class VariableContainer implements Cloneable {
     }
 
     public VariableContainer multiply(VariableContainer a) {
-        assertUnEqClass(a);
+        assertNot(a.getType());
         switch (type) {
             case INT:
                 return new VariableContainer(myInt * a.getInt());
@@ -198,7 +217,7 @@ public class VariableContainer implements Cloneable {
     }
 
     public VariableContainer divide(VariableContainer a) {
-        assertUnEqClass(a);
+        assertNot(a.getType());
         if (type == Type.REAL) {
             return new VariableContainer(myReal / a.getReal());
         }
@@ -206,7 +225,7 @@ public class VariableContainer implements Cloneable {
     }
 
     public VariableContainer sum(VariableContainer a) {
-        assertUnEqClass(a);
+        assertNot(a.getType());
         switch (type) {
             case INT:
                 return new VariableContainer(myInt + a.getInt());
@@ -218,7 +237,7 @@ public class VariableContainer implements Cloneable {
     }
 
     public VariableContainer difference(VariableContainer a) {
-        assertUnEqClass(a);
+        assertNot(a.getType());
         switch (type) {
             case INT:
                 return new VariableContainer(myInt - a.getInt());
@@ -230,7 +249,7 @@ public class VariableContainer implements Cloneable {
     }
 
     public VariableContainer div(VariableContainer a) {
-        assertUnEqClass(a);
+        assertNot(a.getType());
         if (type == Type.INT) {
             return new VariableContainer(myInt / a.getInt());
         }
@@ -238,7 +257,7 @@ public class VariableContainer implements Cloneable {
     }
 
     public VariableContainer mod(VariableContainer a) {
-        assertUnEqClass(a);
+        assertNot(a.getType());
         if (type == Type.INT) {
             return new VariableContainer(myInt % a.getInt());
         }
@@ -275,33 +294,9 @@ public class VariableContainer implements Cloneable {
         return cloned;
     }
 
-    private void assertUnEqClass(VariableContainer a) {
-        if (type != a.getType()) {
-            throw new TypeCastException("Differente type finded.");
-        }
-    }
-
-    public void assertNotBool(String message) {
-        if (type != Type.BOOL) {
-            throw new TypeCastException(message);
-        }
-    }
-
-    public void assertNotInt(String message) {
-        if (type != Type.INT) {
-            throw new TypeCastException(message);
-        }
-    }
-
-    public void assertNotReal(String message) {
-        if (type != Type.REAL) {
-            throw new TypeCastException(message);
-        }
-    }
-
-    public void assertNotList(String message) {
-        if (type != Type.LIST) {
-            throw new TypeCastException(message);
+    public void assertNot(Type expected) {
+        if (type != expected) {
+            throw new TypeCastException("Can't cast " + type + " to " + expected + " type.");
         }
     }
 }

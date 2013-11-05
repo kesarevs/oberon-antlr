@@ -6,16 +6,17 @@ public class Range {
     private Integer left;
     private Integer right;
 
-    public Range(Integer a, Integer b) {
-        if (a > b) {
+    public Range(VariableContainer a, VariableContainer b) {
+        if (a.isGreater(b).getBool()) {
             throw new BadRangeBorders("Left operand greater then right.");
         }
-        left = a;
-        right = b;
+        left = a.getInt();
+        right = b.getInt();
     }
 
-    public Boolean contains(Integer a) {
-        return a >= left && a <= right;
+    public Boolean contains(VariableContainer a) {
+        Integer val = a.getInt();
+        return val >= left && val <= right;
     }
 
     public Integer left() {

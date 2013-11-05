@@ -1,0 +1,8 @@
+MODULE FigureList;
+VAR
+    MyINT : INTEGER;
+BEGIN
+    WHILE MyINT = 0 DO
+        MyINT := MyINT;
+    END;
+END FigureList.

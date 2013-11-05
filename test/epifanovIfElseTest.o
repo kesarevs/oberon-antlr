@@ -1,0 +1,9 @@
+MODULE EpifanovIfElseTest;
+VAR
+	I : INTEGER;
+BEGIN
+	IF I + 1 = I + 2 THEN I := 17;
+	ELSIF I + 1 = I + 1 THEN
+		I := 18;
+	END;
+END EpifanovIfElseTest.

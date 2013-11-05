@@ -1,0 +1,10 @@
+MODULE EpifanovBoolTest;
+VAR
+	I : INTEGER;
+	R : REAL;
+	B : BOOLEAN;
+BEGIN
+	CASE R OF
+		ELSE B := TRUE; (*  wrong reaction: NullPonterException *) 
+	END;
+END EpifanovBoolTest.

@@ -1,0 +1,25 @@
+MODULE FigureList;
+CONST
+    constInt = 5; constInt1 = 6 * 5 + 4 * (2 + 4 * 4); 
+    constReal = 6.8 * 5.6;
+	constBoolTrue = TRUE;
+	constBoolFalse = FALSE;
+VAR
+    int1, int2, int3, int4 : INTEGER;
+    real1, real2, real3, real4 : REAL;
+    int0 : INTEGER;
+	bool1 : BOOLEAN;
+BEGIN
+    int1 := (constInt * constInt + 4 * 4) * 4 * constInt + constInt * constInt;
+    int2 := 2 * constInt1;
+    int1 := int1 * int1;
+    int2 := int1;
+   
+	real1 := (constReal * constReal + 4.0 * 4.0) * 4.0 * constReal + constReal * constReal;
+	real2 := 2.0 * constReal;
+	real1 := real1 * real1;
+	real2 := real1;
+
+	bool1 := constBoolTrue;
+	bool1 := bool1 & constBoolFalse;
+END FigureList.

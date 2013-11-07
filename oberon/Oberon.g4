@@ -5,7 +5,6 @@ options
     language = Java;
 }
 
-@header {package oberon;}
 
 // The keywords
 K_ARRAY : 'ARRAY' ;
@@ -99,12 +98,13 @@ REAL : ('-')?DIGIT+'.'DIGIT+ ;
 bool : K_TRUE | K_FALSE ;
 
 // declaration
-declarationsequence :
-        ( K_CONST (constantdeclaration SEMI)*
-        | K_TYPE (typedeclaration SEMI)*
-        | K_VAR (variabledeclaration SEMI)*)+
-        (proceduredeclaration SEMI | forwarddeclaration SEMI)*
-        ;
+declarationsequence : (K_CONST (constantdeclaration SEMI)* | K_VAR (variabledeclaration SEMI)*)+;
+        //( K_CONST (constantdeclaration SEMI)*
+        //| K_TYPE (typedeclaration SEMI)*
+        //| K_VAR (variabledeclaration SEMI)*
+        //)+
+        //( proceduredeclaration SEMI | forwarddeclaration SEMI)
+        //;
 
 constantdeclaration: identdef EQUAL expression ;
 typedeclaration: ID EQUAL type ;
@@ -114,10 +114,10 @@ identdef: ID ;
 identlist: identdef (COMMA identdef)* ;
 
 type :    baseTypes 
-        | isArr=arraytype 
-        | recordtype 
-        | pointertype 
-        | proceduretype ;
+        | isArr=arraytype ;
+        //| recordtype 
+        //| pointertype 
+        //| proceduretype ;
 
 baseTypes : K_INTEGER | K_REAL | K_BOOL ;
 
@@ -129,8 +129,8 @@ proceduretype: K_PROCEDURE formalparameters? ;
 //procedure
 proceduredeclaration: procedureheading SEMI procedurebody ID ;
 
-procedureheading: K_PROCEDURE MULT? identdef formalparameters? ;
-procedurebody: declarationsequence (K_BEGIN statementsequence)? K_END ;
+procedureheading: K_PROCEDURE identdef formalparameters ;
+procedurebody: declarationsequence? (K_BEGIN statementsequence)? K_END ;
 
 
 //loops
@@ -154,8 +154,7 @@ caselabellist: caselabels (COMMA caselabels)* ;
 
 caselabels: expression (RANGESEP expression)? ;
 
-module : K_MODULE ID SEMI importlist? declarationsequence?
-    (K_BEGIN statementsequence)? K_END ID PERIOD ;
+module : K_MODULE ID SEMI  declarationsequence ( proceduredeclaration SEMI | forwarddeclaration SEMI)* (K_BEGIN statementsequence)? K_END ID PERIOD ;
 
 importlist : K_IMPORT importitem (COMMA importitem)* SEMI ;
 
@@ -176,15 +175,15 @@ factor:   anint
         | stringliteral
         | K_NIL
         | set
-        | designator ('(' explist? ')')?
+        | designator
         | '(' simpleexpression ')'
+        | procedurecall
         ;
 
 set: '{' caselabellist? '}' ;
 
 designator: qualident
     (isArray='[' explist ']'
-        | '(' qualident ')'
         | UPCHAR )* ;
 
 explist: expression (COMMA expression)* ;
@@ -197,15 +196,13 @@ fieldlistsequence: fieldlist (SEMI fieldlist) ;
 
 fieldlist: (identlist COLON type)? ;
 
-formalparameters: '(' params? ')' (COLON qualident)? ;
+formalparameters: '(' params? ')' (COLON type)? ;
 
 params: fpsection (SEMI fpsection)* ;
 
-fpsection: K_VAR? idlist COLON formaltype ;
+fpsection: K_VAR? idlist COLON type ;
 
 idlist: ID (COMMA ID)* ;
-
-formaltype: (K_ARRAY K_OF)* (qualident | proceduretype);
 
 forwarddeclaration: K_PROCEDURE UPCHAR? ID MULT? formalparameters? ;
 
@@ -223,7 +220,7 @@ statement: assignment
         | K_RETURN expression?
         ;
 
-procedurecall: designator actualparameters? ;
+procedurecall: ID actualparameters ;
 
 withstatement: K_WITH qualident COLON qualident K_DO statementsequence K_END ;
 

@@ -86,7 +86,7 @@ SEMI : ';' ;
 UPCHAR : '^' ;
 COLON : ':' ;
 COMMA : ',' ;
-
+NOT : '~';
 
 ID : ('a'..'z'|'A'..'Z')('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 fragment DIGIT : '0'..'9' ;
@@ -179,6 +179,7 @@ factor:   anint
         | designator
         | '(' simpleexpression ')'
         | procedurecall
+        | NOT factor
         ;
 
 set: '{' caselabellist? '}' ;

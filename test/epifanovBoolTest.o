@@ -1,9 +1,11 @@
 MODULE EPIFANOV_TEST;
 VAR
 	true_a, false_b : BOOLEAN;
+    int1 : INTEGER;
 BEGIN
-	(* true_a := ~ false_b token recognition error at: '~' *)
-	(* false_b = TRUE;*) (* wrong error: 'expected' array doesn't contain ':=' *)
+    int1 := 2;
+    true_a := TRUE;
+	false_b := false_b | ~true_a;
 	false_b := false_b;
 	true_a := TRUE;
 	true_a := true_a | false_b & false_b;

@@ -1,3 +1,5 @@
+import oberon.*;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -252,6 +254,8 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     public VariableContainer visitFactor(OberonParser.FactorContext ctx) {
         if (ctx.simpleexpression() != null) {
             return visit(ctx.simpleexpression());
+        } else if (ctx.NOT() != null) {
+            return visit(ctx.factor()).not();
         } else {
             return visitChildren(ctx);
         }

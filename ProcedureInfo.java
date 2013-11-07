@@ -16,15 +16,18 @@ import org.antlr.v4.runtime.tree.*;
 
 
 public class ProcedureInfo {
-    private OberonParser.ProcedurebodyContext ref;
+    OberonParser.ProcedurebodyContext ref;
     List<String> orderedArgs = new ArrayList<String>();
-    private Map<String, Type> formalArgs = new HashMap<String, Type>();
-    private Type returnType = Type.INVALID;
+    Map<String, Type> formalArgs = new HashMap<String, Type>();
+    Type returnType = Type.INVALID;
+    String name;
+
     //TODO: validation, pass-by-reference
 
-    public ProcedureInfo(OberonParser.ProcedurebodyContext ref)
+    public ProcedureInfo(String name, OberonParser.ProcedurebodyContext ref)
     { 
-    	this.ref = ref;
+    	this.name = name;
+    	this.ref  = ref;
     }
 
     public void MergeParams(OberonParser.FpsectionContext fp)
@@ -42,6 +45,11 @@ public class ProcedureInfo {
     	returnType = type;
     }
 
+    public Type GetReturn()
+    {
+    	return returnType;
+    }
+
     public OberonParser.ProcedurebodyContext GetRef()
     {
         return ref;
@@ -49,24 +57,39 @@ public class ProcedureInfo {
 
     public Map<String, VariableContainer> MapArgs(List<VariableContainer> args)
     {
-    	/*if !Validate()
-    		throw new RuntimeException("AAA!");*/
+    	if(args.size() != orderedArgs.size())
+    		throw new InvalidArgumentException("Argument lists don't math in: " + name + " call");
+
     	Map<String, VariableContainer> result = new HashMap<String, VariableContainer>();
-    	Iterator<String> iterator = orderedArgs.iterator();
+    	Iterator<String> orderedArgsIterator = orderedArgs.iterator();
+
     	for(VariableContainer arg : args)
-    		result.put(iterator.next(), arg);
+    	{
+    		String argName = orderedArgsIterator.next();
+    		Type type = formalArgs.get(argName);
+    		if(type == null || type != arg.getType())
+    			throw new InvalidArgumentException("Argument lists don't math in: " + name + " call");
+    		result.put(argName, arg);
+    	}
+
     	return result;
     }
 
-    private Boolean Validate()
+    public String GetName()
     {
-        return true;
+    	return name;
     }
 
-    public String ToString()
+    public String toString()
     {
     	return "Arguments: " + formalArgs.toString() + 
     		   " return type: " + returnType.toString() + 
     		   " reference set: " + new Boolean((ref != null)).toString();
     }
+}
+
+class InvalidArgumentException extends RuntimeException {
+    public InvalidArgumentException(String message) {
+        super(message);
+    }    
 }

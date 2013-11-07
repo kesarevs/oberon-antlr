@@ -1,0 +1,21 @@
+MODULE ProcedureTest;
+VAR
+a, b : INTEGER;
+
+PROCEDURE return5() : INTEGER;
+    BEGIN
+        RETURN 5;    
+    END return5;
+
+PROCEDURE plus1(x: INTEGER) :INTEGER;
+    VAR
+        tmp: INTEGER;
+    BEGIN
+        tmp := x + 1;
+        RETURN tmp;
+    END plus1;
+
+BEGIN
+    a := return5();
+    b := return5() + plus1(a);
+END ProcedureTest.

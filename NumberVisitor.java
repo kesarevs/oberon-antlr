@@ -375,7 +375,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         String functionName = ctx.ID().getText();
         ProcedureInfo funcNode = functionNodes.get(functionName);
         if(funcNode == null)
-            throw new FunctionNotFoundException("No procedure found " + functionName);
+            throw new ProcedureNotFoundException("No procedure found " + functionName);
 
         Map<String, VariableContainer> scope = new HashMap<String, VariableContainer>();
         List<VariableContainer> args = new ArrayList<VariableContainer>();
@@ -388,8 +388,22 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
 
 
         scopes.push(funcNode.MapArgs(args));
-        VariableContainer result = visit(funcNode.GetRef());
+        VariableContainer result = ExecuteProcedure(funcNode);
         scopes.pop();
+        return result;
+    }
+
+    private VariableContainer ExecuteProcedure(ProcedureInfo node)
+    {
+        OberonParser.ProcedurebodyContext body = node.GetRef();
+        if(body.declarationsequence() != null)
+            visit(body.declarationsequence());
+        VariableContainer result = null;
+        if(body.statementsequence() != null)
+            result = visit(body.statementsequence());
+
+        if(result.getType() != node.GetReturn())
+            throw new ProcedureDefinitionException("Procedure return type doesn't match: " + node.GetName());
         return result;
     }
 
@@ -408,12 +422,12 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     public VariableContainer visitProceduredeclaration(OberonParser.ProceduredeclarationContext ctx)
     {
         String name = ctx.procedureheading().identdef().ID().getText();
-        //if(name != ctx.ID().getText())
-        //    throw new RuntimeException("Function signature doesn't match: " + name + " " + ctx.ID().getText()); //TODO
+        if(!name.equals(ctx.ID().getText()))
+            throw new ProcedureDefinitionException("Function signature doesn't match: " + name + " " + ctx.ID().getText());
         if(functionNodes.containsKey(name))
-            throw new RuntimeException("Procedure redefinition: " + name); //TODO
+            throw new ProcedureDefinitionException("Procedure redefinition: " + name);
 
-        ProcedureInfo function = new ProcedureInfo(ctx.procedurebody());
+        ProcedureInfo function = new ProcedureInfo(name, ctx.procedurebody());
 
         OberonParser.ParamsContext params = ctx.procedureheading().formalparameters().params();
         if(params != null)
@@ -431,12 +445,18 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
 
 }
 
-
-class FunctionNotFoundException extends RuntimeException {
-    public FunctionNotFoundException(String message) {
+class ProcedureDefinitionException extends RuntimeException {
+    public ProcedureDefinitionException(String message) {
         super(message);
     }    
 }
+
+class ProcedureNotFoundException extends RuntimeException {
+    public ProcedureNotFoundException(String message) {
+        super(message);
+    }    
+}
+
 class ThisFunctionalityDoesNotSupport extends RuntimeException {
     public ThisFunctionalityDoesNotSupport(String message) {
         super(message);

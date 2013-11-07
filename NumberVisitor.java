@@ -153,7 +153,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         List<OberonParser.TermContext> values = ctx.term();
         List<OberonParser.AddoperatorContext> operators = ctx.addoperator();
         VariableContainer result = visit(values.get(0));
-        System.out.println("in simpleExpr: " + result + values + " size: " + values.size());
         if(ctx.MINUS() != null) {
             result = result.negative();
         }
@@ -170,7 +169,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
                     return result.logicOr(nextVal);
             }
         }
-        System.out.println("in simpleExpr result: " + result);
         return result;
     }
 
@@ -348,12 +346,8 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         {
             result = visit(stat);
             if(stat.K_RETURN() != null)
-            {
-                System.out.println("Return val: " + result);
                 break;
-            }
         }
-        System.out.println("stat seq: " + result);
         return result;
     }
 
@@ -378,7 +372,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     @Override 
     public VariableContainer visitProcedurecall(OberonParser.ProcedurecallContext ctx)
     {
-        System.out.println("in p call");
         String functionName = ctx.ID().getText();
         ProcedureInfo funcNode = functionNodes.get(functionName);
         if(funcNode == null)
@@ -395,11 +388,8 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
 
 
         scopes.push(funcNode.MapArgs(args));
-        System.out.println(scopes.peek().toString());
         VariableContainer result = visit(funcNode.GetRef());
-        System.out.println("proc: " + result);
         scopes.pop();
-        System.out.println(scopes.peek().toString());
         return result;
     }
 
@@ -411,7 +401,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         VariableContainer result = null;
         if(ctx.statementsequence() != null)
             result = visit(ctx.statementsequence());
-        System.out.println("in body: " + result);
         return result;
     }
 
@@ -436,7 +425,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
             function.SetReturn(GetType(returnType));
 
         functionNodes.put(name, function);
-        System.out.println(name + " " + function.ToString());
         return null;     
     }
 

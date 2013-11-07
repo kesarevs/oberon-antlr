@@ -39,7 +39,7 @@ PROCEDURE multVar(x, t: INTEGER; p : REAL; r : INTEGER) : INTEGER;
 PROCEDURE recurcionTo0WithGlobalVar() : INTEGER;
     BEGIN
         IF a22 # 0 THEN
-            RETURN recurcionTo0WithGlobalVar(a22 - 1);
+            RETURN recurcionTo0(a22 - 1);
         END ; 
     END recurcionTo0WithGlobalVar;
 

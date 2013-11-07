@@ -1,5 +1,3 @@
-import oberon.*;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -21,8 +19,18 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     boolean shouldVisit = true;
     VariableContainer procedureReturn;
 
-    Stack< Map<String, VariableContainer> > scopes = new Stack< Map<String, VariableContainer> >();
+    Stack< Map<String, VariableContainer> > locals = new Stack< Map<String, VariableContainer> >();
+    Map<String, VariableContainer> globals = new  HashMap<String, VariableContainer>();
     Map<String, ProcedureInfo> functionNodes = new HashMap<String, ProcedureInfo>();
+
+    private VariableContainer lookup(String name)
+    {
+        if(!locals.empty() && locals.peek().containsKey(name))
+            return locals.peek().get(name);
+        if(globals.containsKey(name))
+            return globals.get(name);
+        return null;
+    }
 
     @Override 
     public VariableContainer visitModule(OberonParser.ModuleContext ctx) { 
@@ -33,8 +41,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
             throw new ModuleNotFoundException("Error: \"End " + nameAtTheEnd + ".\"\nExpected: \"End " + name + ".\"");
         }
         //TODO: Add reference on module class.
-        scopes.push(new HashMap<String, VariableContainer>());
-        scopes.peek().put(name, new ConstVariableContainer(new Object()));
+        globals.put(name, new ConstVariableContainer(new Object()));
         return visitChildren(ctx); 
     }
 
@@ -210,10 +217,10 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     @Override 
     public VariableContainer visitDesignator(OberonParser.DesignatorContext ctx) { 
         String varName = ctx.qualident().getText();
-        if (!scopes.peek().containsKey(varName)) {
+        VariableContainer element = lookup(varName);
+        if (element == null) {
             throw new VariableNotDeclaredException("Variable " + varName + " is not declared.");
         }
-        VariableContainer element = scopes.peek().get(varName);
         if (ctx.isArray != null) {
             for (OberonParser.ExplistContext d : ctx.explist()) {
                 for (OberonParser.ExpressionContext expr : d.expression()) {
@@ -281,22 +288,24 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         List<OberonParser.IdentdefContext> varLst = ctx.identlist().identdef();
         for(OberonParser.IdentdefContext var : varLst) {
             String varName = var.getText();
-            if (scopes.peek().containsKey(varName)) {
+
+            Map<String, VariableContainer> scope = locals.empty() ? globals : locals.peek();
+            if (scope.containsKey(varName)) {
                 throw new VariableDeclarationException("Variable " + varName + " already declared.");
             }
             switch (ctx.type().getText()) {
                 case "INTEGER":
-                    scopes.peek().put(varName, new VariableContainer(0));
+                    scope.put(varName, new VariableContainer(0));
                     break;
                 case "REAL":
-                    scopes.peek().put(varName, new VariableContainer(0f));
+                    scope.put(varName, new VariableContainer(0f));
                     break;
                 case "BOOLEAN":
-                    scopes.peek().put(varName, new VariableContainer(false));
+                    scope.put(varName, new VariableContainer(false));
                     break;
             }
             if (ctx.type().isArr != null) {
-                scopes.peek().put(varName, visit(ctx.type().isArr));
+                scope.put(varName, visit(ctx.type().isArr));
             }
         }
         return null; 
@@ -306,10 +315,11 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     public VariableContainer visitConstantdeclaration(OberonParser.ConstantdeclarationContext ctx) { 
         String varName = ctx.identdef().getText();
         VariableContainer val = visit(ctx.expression());
-        if (scopes.peek().containsKey(varName)) {
+            Map<String, VariableContainer> scope = locals.empty() ? globals : locals.peek();
+        if (scope.containsKey(varName)) {
             throw new VariableDeclarationException("Variable " + varName + " already declared.");
         }
-        scopes.peek().put(varName, new ConstVariableContainer(val));
+        scope.put(varName, new ConstVariableContainer(val));
         return val;
     }
 
@@ -403,11 +413,12 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         }
 
 
-        scopes.push(funcNode.MapArgs(args));
+        locals.push(funcNode.MapArgs(args));
         VariableContainer result = ExecuteProcedure(funcNode);
-        scopes.pop();
+        locals.pop();
         return result;
     }
+
 
     private VariableContainer ExecuteProcedure(ProcedureInfo node)
     {
@@ -418,8 +429,11 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         if(body.statementsequence() != null)
             result = visit(body.statementsequence());
 
-        if(result.getType() != node.GetReturn())
-            throw new ProcedureDefinitionException("Procedure return type doesn't match: " + node.GetName());
+        //TODO: void procedures still may have RETURN value in body
+        if(node.GetReturn() != Type.INVALID && (result == null || result.getType() != node.GetReturn()))
+            throw new ProcedureDefinitionException("Procedure return type doesn't match in: " + node.GetName() +
+                                                   " required: " + node.GetReturn() + 
+                                                   " given: " + (result == null ? result : result.getType()));
         return result;
     }
 

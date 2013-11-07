@@ -1,4 +1,3 @@
-import oberon.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -307,4 +306,4 @@ class TypeCastException extends RuntimeException {
     }
 }
 
-enum Type { INT, REAL, BOOL, OBJECT, LIST, RANGE };
+enum Type { INT, REAL, BOOL, OBJECT, LIST, RANGE, INVALID };

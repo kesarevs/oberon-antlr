@@ -1,5 +1,3 @@
-import oberon.*;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,8 +14,13 @@ import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
 
 public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
-    Map<String, VariableContainer> memory = new HashMap<String, VariableContainer>();
     Map<String, String> types = new HashMap<String, String>();
+
+    boolean shouldVisit = true;
+    VariableContainer procedureReturn;
+
+    Stack< Map<String, VariableContainer> > scopes = new Stack< Map<String, VariableContainer> >();
+    Map<String, ProcedureInfo> functionNodes = new HashMap<String, ProcedureInfo>();
 
     @Override 
     public VariableContainer visitModule(OberonParser.ModuleContext ctx) { 
@@ -28,7 +31,8 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
             throw new ModuleNotFoundException("Error: \"End " + nameAtTheEnd + ".\"\nExpected: \"End " + name + ".\"");
         }
         //TODO: Add reference on module class.
-        memory.put(name, new ConstVariableContainer(new Object()));
+        scopes.push(new HashMap<String, VariableContainer>());
+        scopes.peek().put(name, new ConstVariableContainer(new Object()));
         return visitChildren(ctx); 
     }
 
@@ -149,9 +153,12 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         List<OberonParser.TermContext> values = ctx.term();
         List<OberonParser.AddoperatorContext> operators = ctx.addoperator();
         VariableContainer result = visit(values.get(0));
+        System.out.println("in simpleExpr: " + result + values + " size: " + values.size());
         if(ctx.MINUS() != null) {
             result = result.negative();
         }
+        if(values.size() == 1)
+            return result;
         for(int i = 1; i < values.size(); i++) {
             VariableContainer nextVal = visit(values.get(i));
             switch (operators.get(i - 1).op.getType()) {
@@ -163,6 +170,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
                     return result.logicOr(nextVal);
             }
         }
+        System.out.println("in simpleExpr result: " + result);
         return result;
     }
 
@@ -195,11 +203,11 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
 
     @Override 
     public VariableContainer visitDesignator(OberonParser.DesignatorContext ctx) { 
-        String varName = ctx.qualident(0).getText();
-        if (!memory.containsKey(varName)) {
+        String varName = ctx.qualident().getText();
+        if (!scopes.peek().containsKey(varName)) {
             throw new VariableNotDeclaredException("Variable " + varName + " is not declared.");
         }
-        VariableContainer element = memory.get(varName);
+        VariableContainer element = scopes.peek().get(varName);
         if (ctx.isArray != null) {
             for (OberonParser.ExplistContext d : ctx.explist()) {
                 for (OberonParser.ExpressionContext expr : d.expression()) {
@@ -259,22 +267,22 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         List<OberonParser.IdentdefContext> varLst = ctx.identlist().identdef();
         for(OberonParser.IdentdefContext var : varLst) {
             String varName = var.getText();
-            if (memory.containsKey(varName)) {
+            if (scopes.peek().containsKey(varName)) {
                 throw new VariableDeclarationException("Variable " + varName + " already declared.");
             }
             switch (ctx.type().getText()) {
                 case "INTEGER":
-                    memory.put(varName, new VariableContainer(0));
+                    scopes.peek().put(varName, new VariableContainer(0));
                     break;
                 case "REAL":
-                    memory.put(varName, new VariableContainer(0f));
+                    scopes.peek().put(varName, new VariableContainer(0f));
                     break;
                 case "BOOLEAN":
-                    memory.put(varName, new VariableContainer(false));
+                    scopes.peek().put(varName, new VariableContainer(false));
                     break;
             }
             if (ctx.type().isArr != null) {
-                memory.put(varName, visit(ctx.type().isArr));
+                scopes.peek().put(varName, visit(ctx.type().isArr));
             }
         }
         return null; 
@@ -284,10 +292,10 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     public VariableContainer visitConstantdeclaration(OberonParser.ConstantdeclarationContext ctx) { 
         String varName = ctx.identdef().getText();
         VariableContainer val = visit(ctx.expression());
-        if (memory.containsKey(varName)) {
+        if (scopes.peek().containsKey(varName)) {
             throw new VariableDeclarationException("Variable " + varName + " already declared.");
         }
-        memory.put(varName, new ConstVariableContainer(val));
+        scopes.peek().put(varName, new ConstVariableContainer(val));
         return val;
     }
 
@@ -332,9 +340,115 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         return null;
     }
 
+    @Override
+    public VariableContainer visitStatementsequence(OberonParser.StatementsequenceContext ctx)
+    {
+        VariableContainer result = null;
+        for(OberonParser.StatementContext stat : ctx.statement())
+        {
+            result = visit(stat);
+            if(stat.K_RETURN() != null)
+            {
+                System.out.println("Return val: " + result);
+                break;
+            }
+        }
+        System.out.println("stat seq: " + result);
+        return result;
+    }
+
+    public static Type GetType(OberonParser.TypeContext tc)
+    {
+        if(tc.isArr != null)
+            return Type.LIST;
+        OberonParser.BaseTypesContext base = tc.baseTypes();
+        if(base == null)
+            return Type.INVALID;
+
+        if(base.K_INTEGER() != null)
+            return Type.INT;
+        if(base.K_REAL() != null)
+            return Type.REAL;
+        if(base.K_BOOL() != null)
+            return Type.BOOL;
+
+        return Type.INVALID;
+    }
+
+    @Override 
+    public VariableContainer visitProcedurecall(OberonParser.ProcedurecallContext ctx)
+    {
+        System.out.println("in p call");
+        String functionName = ctx.ID().getText();
+        ProcedureInfo funcNode = functionNodes.get(functionName);
+        if(funcNode == null)
+            throw new FunctionNotFoundException("No procedure found " + functionName);
+
+        Map<String, VariableContainer> scope = new HashMap<String, VariableContainer>();
+        List<VariableContainer> args = new ArrayList<VariableContainer>();
+        OberonParser.ExplistContext expressions = ctx.actualparameters().explist();
+        if(expressions != null)
+        {
+            for(OberonParser.ExpressionContext expr : expressions.expression())
+                args.add(visit(expr));
+        }
+
+
+        scopes.push(funcNode.MapArgs(args));
+        System.out.println(scopes.peek().toString());
+        VariableContainer result = visit(funcNode.GetRef());
+        System.out.println("proc: " + result);
+        scopes.pop();
+        System.out.println(scopes.peek().toString());
+        return result;
+    }
+
+    @Override 
+    public VariableContainer visitProcedurebody(OberonParser.ProcedurebodyContext ctx)
+    {
+        if(ctx.declarationsequence() != null)
+            visit(ctx.declarationsequence());
+        VariableContainer result = null;
+        if(ctx.statementsequence() != null)
+            result = visit(ctx.statementsequence());
+        System.out.println("in body: " + result);
+        return result;
+    }
+
+    @Override
+    public VariableContainer visitProceduredeclaration(OberonParser.ProceduredeclarationContext ctx)
+    {
+        String name = ctx.procedureheading().identdef().ID().getText();
+        //if(name != ctx.ID().getText())
+        //    throw new RuntimeException("Function signature doesn't match: " + name + " " + ctx.ID().getText()); //TODO
+        if(functionNodes.containsKey(name))
+            throw new RuntimeException("Procedure redefinition: " + name); //TODO
+
+        ProcedureInfo function = new ProcedureInfo(ctx.procedurebody());
+
+        OberonParser.ParamsContext params = ctx.procedureheading().formalparameters().params();
+        if(params != null)
+            for(OberonParser.FpsectionContext fp : params.fpsection())
+                function.MergeParams(fp);
+
+        OberonParser.TypeContext returnType = ctx.procedureheading().formalparameters().type();
+        if(returnType != null)
+            function.SetReturn(GetType(returnType));
+
+        functionNodes.put(name, function);
+        System.out.println(name + " " + function.ToString());
+        return null;     
+    }
+
 
 }
 
+
+class FunctionNotFoundException extends RuntimeException {
+    public FunctionNotFoundException(String message) {
+        super(message);
+    }    
+}
 class ThisFunctionalityDoesNotSupport extends RuntimeException {
     public ThisFunctionalityDoesNotSupport(String message) {
         super(message);

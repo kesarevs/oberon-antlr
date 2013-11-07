@@ -8,7 +8,7 @@ public class Range {
 
     public Range(VariableContainer a, VariableContainer b) {
         if (a.isGreater(b).getBool()) {
-            throw new BadRangeBorders("Left operand greater then right.");
+            throw new BadRangeBorders("Left operand greater then right in RANGE.");
         }
         left = a.getInt();
         right = b.getInt();

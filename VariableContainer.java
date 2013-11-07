@@ -29,7 +29,24 @@ public class VariableContainer implements Cloneable {
 
     public VariableContainer(VariableContainer value) {
         type = value.getType();
-        setValue(value);
+        switch (type) {
+            case INT:
+                myInt = value.getInt();
+                break;
+            case REAL:
+                myReal = value.getReal();
+                break;
+            case BOOL: 
+                myBool = value.getBool();
+                break;
+            case RANGE:
+                myRange = value.getRange();
+                break;
+            case LIST:
+                myList = value.getList();
+                break;
+        }
+        myObject = value.getValue();
     }
 
     public VariableContainer(Object value) {
@@ -125,7 +142,7 @@ public class VariableContainer implements Cloneable {
                 result = myBool == a.getBool();
                 break;
             default:
-                throw new TypeCastException("Bad operand for =.");
+                throw new TypeCastException("Bad operands for =.");
         }
         return new VariableContainer(result);
     }
@@ -141,7 +158,7 @@ public class VariableContainer implements Cloneable {
                 result = myReal < a.getReal();
                 break;
             default:
-                throw new TypeCastException("Bad operand for <.");
+                throw new TypeCastException("Bad operands for <.");
         }
         return new VariableContainer(result);
     }
@@ -157,7 +174,7 @@ public class VariableContainer implements Cloneable {
                 result = myReal > a.getReal();
                 break;
             default:
-                throw new TypeCastException("Bad operand for >.");
+                throw new TypeCastException("Bad operands for >.");
         }
         return new VariableContainer(result);
     }
@@ -169,7 +186,7 @@ public class VariableContainer implements Cloneable {
                 result = myRange.contains(a);
                 break;
             default:
-                throw new TypeCastException("Bad operand for IN operator.");
+                throw new TypeCastException("Bad operands for IN operator.");
         }
         return new VariableContainer(result);
     }
@@ -211,7 +228,7 @@ public class VariableContainer implements Cloneable {
             case REAL:
                 return new VariableContainer(myReal * a.getReal());
             default:
-                throw new TypeCastException("No '*' operator for this type.");
+                throw new TypeCastException("Bad operands for * operator.");
         }
     }
 
@@ -220,7 +237,7 @@ public class VariableContainer implements Cloneable {
         if (type == Type.REAL) {
             return new VariableContainer(myReal / a.getReal());
         }
-        throw new TypeCastException("No '/' operator for this type.");
+        throw new TypeCastException("Bad operands for / operator.");
     }
 
     public VariableContainer sum(VariableContainer a) {
@@ -231,7 +248,7 @@ public class VariableContainer implements Cloneable {
             case REAL:
                 return new VariableContainer(myReal + a.getReal());
             default:
-                throw new TypeCastException("No '+' operator for this type.");
+                throw new TypeCastException("Bad operands for + operator.");
         }
     }
 
@@ -243,7 +260,7 @@ public class VariableContainer implements Cloneable {
             case REAL:
                 return new VariableContainer(myReal - a.getReal());
             default:
-                throw new TypeCastException("No '+' operator for this type.");
+                throw new TypeCastException("Bad operands for - operator.");
         }
     }
 
@@ -252,7 +269,7 @@ public class VariableContainer implements Cloneable {
         if (type == Type.INT) {
             return new VariableContainer(myInt / a.getInt());
         }
-        throw new TypeCastException("No 'DIV' operator for this type.");
+        throw new TypeCastException("Bad operands for DIV operator.");
     }
 
     public VariableContainer mod(VariableContainer a) {
@@ -260,7 +277,7 @@ public class VariableContainer implements Cloneable {
         if (type == Type.INT) {
             return new VariableContainer(myInt % a.getInt());
         }
-        throw new TypeCastException("No 'MOD' operator for this type.");
+        throw new TypeCastException("Bad operands for MOD operator.");
     }
 
     public String toString() {

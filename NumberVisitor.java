@@ -86,10 +86,12 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         for (OberonParser.CaseitemContext it : caseitems) {
             ArrayList<VariableContainer> segments = visit(it.caselabellist()).getList();
             for(VariableContainer caseitem : segments) {
-                if (caseitem.getType() == Type.RANGE || result.isEqual(caseitem).getBool()) {
+                if (caseitem.getType() == Type.RANGE) {
                     if (caseitem.contains(result).getBool()) {
                         return visit(it.statementsequence());
                     }
+                } else if (result.isEqual(caseitem).getBool()) {
+                    return visit(it.statementsequence());
                 }
             }
         }
@@ -234,6 +236,14 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         return arr;
     }
 
+    public VariableContainer visitFactor(OberonParser.FactorContext ctx) {
+        if (ctx.simpleexpression() != null) {
+            return visit(ctx.simpleexpression());
+        } else {
+            return visitChildren(ctx);
+        }
+    }
+
     @Override 
     public VariableContainer visitArraytype(OberonParser.ArraytypeContext ctx) { 
         List<OberonParser.ExpressionContext> sizeCont = ctx.explist().expression();
@@ -301,7 +311,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     public VariableContainer visitWhilestatement(OberonParser.WhilestatementContext ctx) { 
         OberonParser.ExpressionContext exp = ctx.expression();
         OberonParser.StatementsequenceContext loop = ctx.statementsequence();
-        Boolean doNext = true;
+        Boolean doNext = visit(exp).getBool();;
         while (doNext) {
             visit(loop);
             doNext = visit(exp).getBool();

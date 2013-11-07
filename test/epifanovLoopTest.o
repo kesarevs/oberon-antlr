@@ -1,8 +1,10 @@
 MODULE FigureList;
 VAR
     MyINT : INTEGER;
+    MyBOOL : BOOLEAN;
 BEGIN
-    WHILE MyINT = 0 DO
+    WHILE MyINT = 2 DO
         MyINT := MyINT;
+        MyBOOL := FALSE;
     END;
 END FigureList.

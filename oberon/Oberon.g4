@@ -5,6 +5,7 @@ options
     language = Java;
 }
 
+@header {package oberon;}
 
 // The keywords
 K_ARRAY : 'ARRAY' ;
@@ -155,7 +156,7 @@ caselabellist: caselabels (COMMA caselabels)* ;
 caselabels: expression (RANGESEP expression)? ;
 
 module : K_MODULE ID SEMI  declarationsequence ( proceduredeclaration SEMI | forwarddeclaration SEMI)* (K_BEGIN statementsequence)? K_END ID PERIOD ;
-
+  
 importlist : K_IMPORT importitem (COMMA importitem)* SEMI ;
 
 importitem : ID (ASSIGN ID)? ;

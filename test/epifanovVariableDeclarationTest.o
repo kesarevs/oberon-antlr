@@ -1,7 +1,7 @@
 MODULE FigureList;
 CONST
     constInt = 5; constInt1 = 6 * 5 + 4 * (2 + 4 * 4); 
-    constReal = 6.8 * 5.6;
+    constReal = 6.0 * 5.0 + 4.0 * (2.0 + 4.0 * 4.0);
 	constBoolTrue = TRUE;
 	constBoolFalse = FALSE;
 VAR
@@ -15,6 +15,7 @@ BEGIN
     int1 := int1 * int1;
     int2 := int1;
    
+    real1 := constReal;
 	real1 := (constReal * constReal + 4.0 * 4.0) * 4.0 * constReal + constReal * constReal;
 	real2 := 2.0 * constReal;
 	real1 := real1 * real1;

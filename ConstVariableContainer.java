@@ -34,7 +34,7 @@ public class ConstVariableContainer extends VariableContainer implements Cloneab
 
     @Override
     public void setValue(VariableContainer a) {
-        throw new ConstVariableChanging("Const variable changing.");
+        throw new ConstVariableChanging("Can't change value of Const variable.");
     }
 }
 

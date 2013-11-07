@@ -1,11 +1,24 @@
 MODULE ProcedureTest;
 VAR
-a, b : INTEGER;
+a5, a11, a22, a102, a40, a0 : INTEGER;
+
+PROCEDURE recurcionTo0(x : INTEGER) : INTEGER;
+    BEGIN
+        IF x # 0 THEN
+            RETURN recurcionTo0(x - 1);
+        END ; 
+        RETURN 0;
+    END recurcionTo0;
 
 PROCEDURE return5() : INTEGER;
     BEGIN
         RETURN 5;    
     END return5;
+
+PROCEDURE double(x: INTEGER) : INTEGER;
+    BEGIN
+        RETURN x * 2;    
+    END double;
 
 PROCEDURE plus1(x: INTEGER) :INTEGER;
     VAR
@@ -15,7 +28,28 @@ PROCEDURE plus1(x: INTEGER) :INTEGER;
         RETURN tmp;
     END plus1;
 
+PROCEDURE multVar(x, t: INTEGER; p : REAL; r : INTEGER) : INTEGER;
+    VAR
+        tmp: INTEGER;
+    BEGIN
+        tmp := t * return5() + double(x) * (r + double(x) * double(x));
+        RETURN tmp;
+    END multVar;
+
+PROCEDURE recurcionTo0WithGlobalVar() : INTEGER;
+    BEGIN
+        IF a22 # 0 THEN
+            RETURN recurcionTo0WithGlobalVar(a22 - 1);
+        END ; 
+    END recurcionTo0WithGlobalVar;
+
 BEGIN
-    a := return5();
-    b := return5() + plus1(a);
+    a22 := 5 + 6 + 5 + 6;
+    a40 := 2 * 2 * 2 * 5;
+    a5 := return5();
+    a11 := return5() + plus1(a5);
+    a22 := double(plus1(double(return5())));
+    a102 := multVar(2, 6, 5.6, 2);
+    a0 := recurcionTo0(10);
+    a0 := recurcionTo0WithGlobalVar();
 END ProcedureTest.

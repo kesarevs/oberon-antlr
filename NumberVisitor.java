@@ -88,6 +88,9 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         for (OberonParser.CaseitemContext it : caseitems) {
             ArrayList<VariableContainer> segments = visit(it.caselabellist()).getList();
             for(VariableContainer caseitem : segments) {
+                if (caseitem == null) {
+                    break;
+                }
                 if (caseitem.getType() == Type.RANGE) {
                     if (caseitem.contains(result).getBool()) {
                         return visit(it.statementsequence());
@@ -160,17 +163,18 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         if(ctx.MINUS() != null) {
             result = result.negative();
         }
-        if(values.size() == 1)
-            return result;
         for(int i = 1; i < values.size(); i++) {
             VariableContainer nextVal = visit(values.get(i));
             switch (operators.get(i - 1).op.getType()) {
                 case OberonParser.MINUS:
-                    return result.difference(nextVal);
+                    result = result.difference(nextVal);
+                    break;
                 case OberonParser.PLUS:
-                    return result.sum(nextVal);
+                    result = result.sum(nextVal);
+                    break;
                 case OberonParser.OR:
-                    return result.logicOr(nextVal);
+                    result = result.logicOr(nextVal);
+                    break;
             }
         }
         return result;

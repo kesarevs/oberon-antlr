@@ -1,5 +1,3 @@
-import oberon.*;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -18,13 +16,19 @@ import org.antlr.v4.runtime.tree.*;
 
 
 public class ProcedureInfo {
+
     OberonParser.ProcedurebodyContext ref;
     List<String> orderedArgs = new ArrayList<String>();
-    Map<String, Type> formalArgs = new HashMap<String, Type>();
+
+    class ArgInfo
+    {
+        public Type type;
+        public Boolean byValue;
+    }
+    Map<String, ArgInfo> formalArgs = new HashMap<String, ArgInfo>();
     Type returnType = Type.INVALID;
     String name;
 
-    //TODO: validation, pass-by-reference
 
     public ProcedureInfo(String name, OberonParser.ProcedurebodyContext ref)
     { 
@@ -34,10 +38,12 @@ public class ProcedureInfo {
 
     public void MergeParams(OberonParser.FpsectionContext fp)
     {
-    	Type type = NumberVisitor.GetType(fp.type());
+        ArgInfo info = new ArgInfo();
+    	info.type = NumberVisitor.GetType(fp.type());
+        info.byValue = fp.K_VAR() == null;
     	for(TerminalNode id : fp.idlist().ID())
     	{
-    		formalArgs.put(id.getText(), type);
+    		formalArgs.put(id.getText(), info);
     		orderedArgs.add(id.getText());
     	}
     }
@@ -60,7 +66,7 @@ public class ProcedureInfo {
     public Map<String, VariableContainer> MapArgs(List<VariableContainer> args)
     {
     	if(args.size() != orderedArgs.size())
-    		throw new InvalidArgumentException("Argument lists don't math in: " + name + " call");
+    		throw new InvalidArgumentException("Argument lists don't match in: " + name + " call");
 
     	Map<String, VariableContainer> result = new HashMap<String, VariableContainer>();
     	Iterator<String> orderedArgsIterator = orderedArgs.iterator();
@@ -68,10 +74,14 @@ public class ProcedureInfo {
     	for(VariableContainer arg : args)
     	{
     		String argName = orderedArgsIterator.next();
-    		Type type = formalArgs.get(argName);
-    		if(type == null || type != arg.getType())
-    			throw new InvalidArgumentException("Argument lists don't math in: " + name + " call");
-    		result.put(argName, arg);
+    		ArgInfo info = formalArgs.get(argName);
+    		if(info == null || info.type != arg.getType())
+    			throw new InvalidArgumentException("Argument lists don't match in: " + name + " call");
+
+            if(info.byValue)
+                result.put(argName, new VariableContainer(arg));
+            else
+    		  result.put(argName, arg);
     	}
 
     	return result;

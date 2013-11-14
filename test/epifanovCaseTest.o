@@ -5,6 +5,6 @@ VAR
 	B : BOOLEAN;
 BEGIN
 	CASE R OF
-		ELSE B := TRUE; (*  wrong reaction: NullPonterException *) 
+		ELSE WRITE(TRUE); (*  wrong reaction: NullPonterException *) 
 	END;
 END EpifanovBoolTest.

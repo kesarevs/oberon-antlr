@@ -6,7 +6,9 @@ BEGIN
     int1 := 2;
     true_a := TRUE;
 	false_b := false_b | ~true_a;
+    WRITELN(false_b = FALSE);
 	false_b := false_b;
+    WRITELN(false_b = FALSE);
 	true_a := TRUE;
-	true_a := true_a | false_b & false_b;
+    WRITELN(true_a | false_b & false_b);
 END EPIFANOV_TEST.

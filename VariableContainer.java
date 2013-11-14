@@ -133,7 +133,7 @@ public class VariableContainer implements Cloneable {
         Boolean result;
         switch (type) {
             case INT:
-                result = myInt == a.getInt();
+                result = myInt.equals(a.getInt());
                 break;
             case REAL:
                 result = myReal == a.getReal();

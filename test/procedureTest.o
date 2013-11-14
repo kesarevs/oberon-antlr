@@ -17,6 +17,7 @@ PROCEDURE return5() : INTEGER;
 
 PROCEDURE double(x: INTEGER) : INTEGER;
     BEGIN
+        WRITELN(return5() = 5);
         RETURN x * 2;    
     END double;
 
@@ -24,7 +25,9 @@ PROCEDURE plus1(x: INTEGER) :INTEGER;
     VAR
         tmp: INTEGER;
     BEGIN
+        WRITELN(double(return5()) = 10);
         tmp := x + 1;
+        WRITELN(tmp = x + 1);
         RETURN tmp;
     END plus1;
 
@@ -45,11 +48,19 @@ PROCEDURE recurcionTo0WithGlobalVar() : INTEGER;
 
 BEGIN
     a22 := 5 + 6 + 5 + 6;
+    WRITELN(a22 = 22);
     a40 := 2 * 2 * 2 * 5;
+    WRITELN(a40 = 40);
     a5 := return5();
+    WRITELN(a5 = 5);
     a11 := return5() + plus1(a5);
+    WRITELN(a11 = 11);
     a22 := double(plus1(double(return5())));
+    WRITELN(a22 = 22);
     a102 := multVar(2, 6, 5.6, 2);
+    WRITELN(a102 = 102);
     a0 := recurcionTo0(10);
+    WRITELN(a0 = 0);
     a0 := recurcionTo0WithGlobalVar();
+    WRITELN(a0 = 0);
 END ProcedureTest.

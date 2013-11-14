@@ -5,45 +5,45 @@ VAR
 BEGIN
     MyINT := 10;
     CASE MyINT OF
-        0..4, 4..5, 6 : MyBool := FALSE;
-        | 0, 1, 2, 3, 4..5 : MyBool := FALSE;
-        | 10 : MyBool := TRUE;
-        | 0..10 : MyBool := FALSE;
-        | 0, 1, 10 : MyBool := FALSE;
-        ELSE MyBool := FALSE;
+        0..4, 4..5, 6 : WRITELN(FALSE);
+        | 0, 1, 2, 3, 4..5 : WRITELN(FALSE);
+        | 10 : WRITELN(TRUE);
+        | 0..10 : WRITELN(FALSE);
+        | 0, 1, 10 : WRITELN(FALSE);
+        ELSE WRITELN(FALSE);
     END;
 
     CASE MyINT OF
-        0..4, 4..5, 6 : MyBool := FALSE;
-        | 0, 1, 2, 3, 4..4 : MyBool := FALSE;
-        | 0..10 : MyBool := TRUE;
-        | 10 : MyBool := FALSE;
-        | 0, 1, 10 : MyBool := FALSE;
-        ELSE MyBool := FALSE;
+        0..4, 4..5, 6 : WRITELN(FALSE);
+        | 0, 1, 2, 3, 4..4 : WRITELN(FALSE);
+        | 0..10 : WRITELN(TRUE);
+        | 10 : WRITELN(FALSE);
+        | 0, 1, 10 : WRITELN(FALSE);
+        ELSE WRITELN(FALSE);
     END;
 
     CASE MyINT OF
-        0..4, 4..5, 6 : MyBool := FALSE;
-        | 0, 1, 2, 3, 4..5 : MyBool := FALSE;
-        | 0, 1, 10 : MyBool := TRUE;
-        | 0..10 : MyBool := FALSE;
-        | 10 : MyBool := FALSE;
-        ELSE MyBool := FALSE;
+        0..4, 4..5, 6 : WRITELN(FALSE);
+        | 0, 1, 2, 3, 4..5 : WRITELN(FALSE);
+        | 0, 1, 10 : WRITELN(TRUE);
+        | 0..10 : WRITELN(FALSE);
+        | 10 : WRITELN(FALSE);
+        ELSE WRITELN(FALSE);
     END;
 
     MyINT := 101;
     CASE MyINT OF
-        0..4, 4..5, 6 : MyBool := FALSE;
-        | 0, 1, 2, 3, 4..5 : MyBool := FALSE;
-        | 0, 1, 10 : MyBool := FALSE;
-        | 0..10 : MyBool := FALSE;
-        | 10 : MyBool := FALSE;
-        ELSE MyBool := TRUE;
+        0..4, 4..5, 6 : WRITELN(FALSE);
+        | 0, 1, 2, 3, 4..5 : WRITELN(FALSE);
+        | 0, 1, 10 : WRITELN(FALSE);
+        | 0..10 : WRITELN(FALSE);
+        | 10 : WRITELN(FALSE);
+        ELSE WRITELN(TRUE);
     END;
 
     CASE MyINT OF
-        0..4, 4..5, 6 : MyBool := FALSE;
+        0..4, 4..5, 6 : WRITELN(FALSE);
     END;
-    MyBool := TRUE;
+    WRITELN(TRUE);
 
 END FigureList.

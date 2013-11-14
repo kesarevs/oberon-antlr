@@ -1,0 +1,20 @@
+MODULE FigureList;
+CONST
+    constInt = 5; constInt1 = 6 * 5 + 4 * (2 + 4 * 4); 
+    constReal = 6.0 * 5.0 + 4.0 * (2.0 + 4.0 * 4.0);
+    constBoolTrue = TRUE;
+    constBoolFalse = FALSE;
+VAR
+    int1, int2, int3, int4 : INTEGER;
+    real1, real2, real3, real4 : REAL;
+    int0 : INTEGER;
+    true, false : BOOLEAN;
+BEGIN
+    WRITELN(0, 1, 2, 3, 4, 5, 6, 7);
+    WRITELN((constInt * constInt + 4 * 4) * 4 * constInt + constInt * constInt, int1 = 1, constReal, constReal);
+    READ(int1);
+    READ(real1);
+    READ(true);
+    READ(false);
+    WRITELN(int1, real1, true, false);
+END FigureList.

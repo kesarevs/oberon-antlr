@@ -9,30 +9,37 @@ BEGIN
     intC := 0;
     intD := 2;
 
-    true_a:= intA = intA;
-    true_a:= intB = intB;
-    true_a:= intA = -intB;
+    WRITELN(intA = intA);
+    WRITELN(intB = intB);
+    WRITELN(intA = -intB);
+    false_c := intA = intB;
 
-    false_c:= intA = intB;
-
-    true_a := intA # intB;
+    WRITELN(false_c = FALSE);
+    WRITELN(intA # intB);
     false_c := intA # -intB;
+    WRITELN(false_c = FALSE);
 
-    true_a := intA > intB;
+    WRITELN(intA > intB);
     false_c := intA > intA;
+    WRITELN(false_c = FALSE);
     false_c := intA > intD;
+    WRITELN(false_c = FALSE);
 
-    true_a := intB < intA;
+    WRITELN(intB < intA);
     false_c := intA < intA;
+    WRITELN(false_c = FALSE);
     false_c := intD < intA;
+    WRITELN(false_c = FALSE);
 
-    true_a := intA >= intB;
-    true_a := intA >= intA;
+    WRITELN(intA >= intB);
+    WRITELN(intA >= intA);
     false_c := intA >= intD;
+    WRITELN(false_c = FALSE);
 
-    true_a := intB <= intA;
-    true_a := intA <= intA;
+    WRITELN(intB <= intA);
+    WRITELN(intA <= intA);
     false_c := intD <= intA;
+    WRITELN(false_c = FALSE);
 
 
 END FigureList.

@@ -1,11 +1,5 @@
 import oberon.*;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Stack;
-import java.util.List;
+import java.util.*;
 import java.io.*;
 import java.lang.Exception;
 
@@ -88,6 +82,39 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
             return new VariableContainer(true);
         }
         return new VariableContainer(false);
+    }
+
+    public VariableContainer writeVars(List<VariableContainer> args) {
+        for(VariableContainer var : args) {
+            System.out.print(var);
+            System.out.print(" ");
+        }
+        return null;
+    }
+
+    public VariableContainer writelnVars(List<VariableContainer> args) {
+        writeVars(args);
+        System.out.println();
+        return null;
+    }
+
+    public VariableContainer readToVar(VariableContainer var) {
+        Scanner sc = new Scanner(System.in);
+        sc.useLocale(Locale.US);
+        VariableContainer readedResult;
+        if (sc.hasNextInt()) {
+            readedResult = new VariableContainer(sc.nextInt());
+        } else if (sc.hasNextFloat()) {
+            readedResult = new VariableContainer(sc.nextFloat());
+        } else if (sc.hasNext("TRUE.?")) {
+            readedResult = new VariableContainer(true);
+        } else if (sc.hasNext("FALSE.?")) {
+            readedResult = new VariableContainer(false);
+        } else {
+            throw new ThisFunctionalityDoesNotSupport("");
+        }
+        var.setValue(readedResult);
+        return var;
     }
 
     @Override 
@@ -239,7 +266,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         VariableContainer result = visit(ctx.expression());
         VariableContainer var = visit(ctx.designator());
         var.setValue(result);
-        System.out.println(ctx.designator().getText() + " := " + var.getValue());
         return result;
     }
     
@@ -403,11 +429,14 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     public VariableContainer visitProcedurecall(OberonParser.ProcedurecallContext ctx)
     {
         String functionName = ctx.ID().getText();
-        ProcedureInfo funcNode = functionNodes.get(functionName);
-        if(funcNode == null)
-            throw new ProcedureNotFoundException("No procedure found " + functionName);
-
-        Map<String, VariableContainer> scope = new HashMap<String, VariableContainer>();
+        if (functionName.equals("READ")) {
+            String varName = ctx.actualparameters().explist().getText();
+            VariableContainer element = lookup(varName);
+            if (element == null) {
+                throw new VariableNotDeclaredException("Variable " + varName + " is not declared.");
+            }
+            return readToVar(element);
+        }
         List<VariableContainer> args = new ArrayList<VariableContainer>();
         OberonParser.ExplistContext expressions = ctx.actualparameters().explist();
         if(expressions != null)
@@ -415,7 +444,18 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
             for(OberonParser.ExpressionContext expr : expressions.expression())
                 args.add(visit(expr));
         }
+        if (functionName.equals("WRITELN")) {
+            return writelnVars(args);
+        }
+        if (functionName.equals("WRITE")) {
+            return writeVars(args);
+        }
 
+        ProcedureInfo funcNode = functionNodes.get(functionName);
+        if(funcNode == null)
+            throw new ProcedureNotFoundException("No procedure found " + functionName);
+
+        Map<String, VariableContainer> scope = new HashMap<String, VariableContainer>();
 
         locals.push(funcNode.MapArgs(args));
         VariableContainer result = ExecuteProcedure(funcNode);

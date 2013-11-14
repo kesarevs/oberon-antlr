@@ -8,7 +8,11 @@ VAR
     int0 : INTEGER;
 BEGIN
     int1 := (constInt * constInt + 4 * 4) * 4 * constInt + constInt * constInt;
+    WRITELN(int1 = 845);
     int2 := 2 * constInt1;
+    WRITELN(int2 = 204);
     int1 := int1 * int1;
+    WRITELN(int1 = 714025);
     int2 := int1;
+    WRITELN(int2 = 714025);
 END FigureList.

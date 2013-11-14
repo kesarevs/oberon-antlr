@@ -1,38 +1,44 @@
 MODULE FigureList;
 VAR
     MyINT : INTEGER;
+    MyBool : BOOLEAN;
 BEGIN
     IF 1 = 1 THEN
-        MyINT := 1;
+        MyBool := TRUE;
     END ;
+    WRITELN(MyBool);
 
     IF 0 = 1 THEN
-        MyINT := 0;
+        MyBool := FALSE;
     END ;
+    WRITELN(MyBool);
 
     IF 0 = 1 THEN
-        MyINT := 0;
+        MyBool := FALSE;
     ELSIF 0 = 1 THEN
-        MyINT := 0;
+        MyBool := FALSE;
     ELSIF 0 = 1 THEN
-        MyINT := 0;
+        MyBool := FALSE;
     ELSIF 1 = 1 THEN
-        MyINT := 1;   
+        MyBool := TRUE;  
     END ;
+    WRITELN(MyBool);
 
     IF 0 = 1 THEN
-        MyINT := 0;
+        MyBool := FALSE;
     ELSE
-        MyINT := 1;   
+        MyBool := TRUE;  
     END ;
+    WRITELN(MyBool);
 
     IF 0 = 1 THEN
-        MyINT := 0;
+        MyBool := FALSE;
     ELSIF 0 = 1 THEN
-        MyINT := 0;
+        MyBool := FALSE;
     ELSIF 0 = 1 THEN
-        MyINT := 0; 
+        MyBool := FALSE;
     ELSE
-        MyINT := 1;   
+        MyBool := TRUE;
     END ;
+    WRITELN(MyBool);
 END FigureList.

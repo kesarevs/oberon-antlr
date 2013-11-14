@@ -2,8 +2,8 @@ MODULE EpifanovIfElseTest;
 VAR
 	I : INTEGER;
 BEGIN
-	IF I + 1 = I + 2 THEN I := 17;
+	IF I + 1 = I + 2 THEN WRITELN(FALSE);
 	ELSIF I + 1 = I + 1 THEN
-		I := 18;
+		WRITELN(TRUE);
 	END;
 END EpifanovIfElseTest.

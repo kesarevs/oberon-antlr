@@ -6,16 +6,18 @@ VAR
 BEGIN
     true_a := TRUE;
     true_b := TRUE;
+    WRITELN(true_a = true_b);
     false_c := FALSE;
     false_d := FALSE;
+    WRITELN(false_c = false_d);
 
-    true_a := true_a & true_b;
-    false_c := false_c & false_d;
-    false_c := false_c & true_a;
+    WRITELN(true_a & true_b = TRUE);
+    WRITELN(false_c & false_d = FALSE);
+    WRITELN(false_c & true_a = FALSE);
 
-    true_a := true_a | true_a;
-    true_a := true_a | true_b;
-    true_a := true_a | false_c;
-    false_c := false_c | false_d;
+    WRITELN(true_a | true_a = TRUE);
+    WRITELN(true_a | true_b = TRUE);
+    WRITELN(true_a | false_c = TRUE);
+    WRITELN(false_c | false_d = FALSE);
 
 END FigureList.

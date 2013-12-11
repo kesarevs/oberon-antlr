@@ -504,18 +504,26 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
             throw new ProcedureDefinitionException("Function signature doesn't match: " + name + " " + ctx.ID().getText());
         if(functionNodes.containsKey(name))
             throw new ProcedureDefinitionException("Procedure redefinition: " + name);
-
         ProcedureInfo function = new ProcedureInfo(name, ctx.procedurebody());
+        OberonParser.FormalparametersContext formal_params = ctx.procedureheading().formalparameters();
 
-        OberonParser.ParamsContext params = ctx.procedureheading().formalparameters().params();
-        if(params != null)
-            for(OberonParser.FpsectionContext fp : params.fpsection())
+        OberonParser.ParamsContext params = null;
+        try {
+            params = formal_params.params();
+        } catch (NullPointerException e) {}
+
+        if(params != null) {
+            for(OberonParser.FpsectionContext fp : params.fpsection()) {
                 function.MergeParams(fp);
+            }
+        }
 
-        OberonParser.TypeContext returnType = ctx.procedureheading().formalparameters().type();
+        OberonParser.TypeContext returnType = null;
+        try {
+            returnType = formal_params.type();
+        } catch (NullPointerException e) {}
         if(returnType != null)
             function.SetReturn(GetType(returnType));
-
         functionNodes.put(name, function);
         return null;     
     }

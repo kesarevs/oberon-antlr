@@ -1,5 +1,5 @@
 MODULE BottlesOfBeers;
-      PROCEDURE Start() : INTEGER;
+      PROCEDURE Start;
            VAR bottles: INTEGER;
            BEGIN
                 bottles := 99;

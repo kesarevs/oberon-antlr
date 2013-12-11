@@ -130,7 +130,7 @@ proceduretype: K_PROCEDURE formalparameters? ;
 //procedure
 proceduredeclaration: procedureheading SEMI procedurebody ID ;
 
-procedureheading: K_PROCEDURE identdef formalparameters ;
+procedureheading: K_PROCEDURE identdef (formalparameters)? ;
 procedurebody: declarationsequence? (K_BEGIN statementsequence)? K_END ;
 
 

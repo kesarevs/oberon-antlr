@@ -1,0 +1,8 @@
+MODULE aPlusB;
+VAR
+    int1, int2: INTEGER;
+BEGIN
+    READ(int1);
+    READ(int2);
+    WRITELN(int1 + int2);
+END aPlusB.

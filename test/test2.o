@@ -1,0 +1,24 @@
+MODULE BottlesOfBeers;
+      PROCEDURE Start() : INTEGER;
+           VAR bottles: INTEGER;
+           BEGIN
+                bottles := 99;
+
+                REPEAT
+                    WRITE(bottles, 2);
+                    WRITE(" bottles of beer on the wall, ");
+                    WRITE(bottles, 2);
+                    WRITELN(" bottles of beer.");
+                    WRITE("Take one down, pass it around, ");
+
+                    DEC(bottles);
+
+                    WRITE(bottles, 2);
+                    WRITELN(" bottles of beer on the wall.");
+                UNTIL bottles = 1;
+
+                WRITELN("1 bottle of beer on the wall, one bottle of beer.");
+                WRITE("Take one down, pass it around,");
+                WRITELN(" no more bottles of beer on the wall");
+           END Start;
+END BottlesOfBeers.

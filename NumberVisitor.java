@@ -16,11 +16,17 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     VariableContainer procedureReturn;
 
     Stack< Map<String, VariableContainer> > locals = new Stack< Map<String, VariableContainer> >();
-    Map<String, VariableContainer> globals = new  HashMap<String, VariableContainer>();
+    Map<String, VariableContainer> globals = new HashMap<String, VariableContainer>();
     Map<String, ProcedureInfo> functionNodes = new HashMap<String, ProcedureInfo>();
 
-    private VariableContainer lookup(String name)
-    {
+    Scanner sc;
+
+    public NumberVisitor() {
+        sc = new Scanner(System.in);
+        sc.useLocale(Locale.US);
+    }
+
+    private VariableContainer lookup(String name) {
         if(!locals.empty() && locals.peek().containsKey(name))
             return locals.peek().get(name);
         if(globals.containsKey(name))
@@ -99,8 +105,6 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     }
 
     public VariableContainer readToVar(VariableContainer var) {
-        Scanner sc = new Scanner(System.in);
-        sc.useLocale(Locale.US);
         VariableContainer readedResult;
         if (sc.hasNextInt()) {
             readedResult = new VariableContainer(sc.nextInt());

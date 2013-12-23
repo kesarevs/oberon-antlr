@@ -6,11 +6,13 @@ BEGIN
     WHILE MyINT # 0 DO
         MyINT := MyINT - 1;
         WRITE(MyINT);
+        WRITE(" ");
     END;
     WRITELN();
     MyINT := 10;
     REPEAT
         MyINT := MyINT - 1;
         WRITE(MyINT);
-    UNTIL MyINT # 0;
+        WRITE(" ");
+    UNTIL MyINT = 0;
 END FigureList.

@@ -90,7 +90,7 @@ NOT : '~';
 
 ID : ('a'..'z'|'A'..'Z')('a'..'z'|'A'..'Z'|'_'|'0'..'9')* ;
 fragment DIGIT : '0'..'9' ;
-stringliteral : '"' ~('\\'|'"')* '"' ;
+STRING : '"'~('\\'|'"')*'"' ;
 
 
 // BaseTypes
@@ -130,7 +130,7 @@ proceduretype: K_PROCEDURE formalparameters? ;
 //procedure
 proceduredeclaration: procedureheading SEMI procedurebody ID ;
 
-procedureheading: K_PROCEDURE identdef (formalparameters)? ;
+procedureheading: K_PROCEDURE identdef '*'? (formalparameters)? ;
 procedurebody: declarationsequence? (K_BEGIN statementsequence)? K_END ;
 
 
@@ -155,7 +155,7 @@ caselabellist: caselabels (COMMA caselabels)* ;
 
 caselabels: expression (RANGESEP expression)? ;
 
-module : K_MODULE ID SEMI  declarationsequence ( proceduredeclaration SEMI | forwarddeclaration SEMI)* (K_BEGIN statementsequence)? K_END ID PERIOD ;
+module : K_MODULE ID SEMI  declarationsequence? ( proceduredeclaration SEMI | forwarddeclaration SEMI)* (K_BEGIN statementsequence)? K_END ID PERIOD ;
   
 importlist : K_IMPORT importitem (COMMA importitem)* SEMI ;
 
@@ -173,7 +173,7 @@ real: REAL;
 factor:   anint
         | real
         | bool
-        | stringliteral
+        | STRING
         | K_NIL
         | set
         | designator

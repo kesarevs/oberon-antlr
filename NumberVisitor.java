@@ -91,9 +91,11 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
     }
 
     public VariableContainer writeVars(List<VariableContainer> args) {
-        for(VariableContainer var : args) {
-            System.out.print(var);
-            System.out.print(" ");
+        for(int i = 0; i < args.size(); i++) {
+            System.out.print(args.get(i));
+            if (i < args.size() - 1) {
+                System.out.print(" ");
+            }
         }
         return null;
     }
@@ -376,7 +378,7 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         Boolean doNext = true;
         do {
             visit(loop);
-            doNext = visit(exp).getBool();
+            doNext = !visit(exp).getBool();
         } while (doNext);
         return null; 
     }
@@ -445,8 +447,15 @@ public class NumberVisitor extends OberonBaseVisitor<VariableContainer> {
         OberonParser.ExplistContext expressions = ctx.actualparameters().explist();
         if(expressions != null)
         {
-            for(OberonParser.ExpressionContext expr : expressions.expression())
-                args.add(visit(expr));
+            for(OberonParser.ExpressionContext expr : expressions.expression()) {
+                VariableContainer var = visit(expr);
+                if (var == null) {
+                    String text = expr.getText();
+
+                    var = new VariableContainer(text.substring(1, text.length() - 1));
+                }
+                args.add(var);
+            }
         }
         if (functionName.equals("WRITELN")) {
             return writelnVars(args);

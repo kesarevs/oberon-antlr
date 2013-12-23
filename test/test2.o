@@ -1,5 +1,5 @@
 MODULE BottlesOfBeers;
-      PROCEDURE Start;
+      PROCEDURE Start*;
            VAR bottles: INTEGER;
            BEGIN
                 bottles := 99;
@@ -11,8 +11,7 @@ MODULE BottlesOfBeers;
                     WRITELN(" bottles of beer.");
                     WRITE("Take one down, pass it around, ");
 
-                    DEC(bottles);
-
+		                bottles := bottles - 1;
                     WRITE(bottles, 2);
                     WRITELN(" bottles of beer on the wall.");
                 UNTIL bottles = 1;
@@ -21,4 +20,6 @@ MODULE BottlesOfBeers;
                 WRITE("Take one down, pass it around,");
                 WRITELN(" no more bottles of beer on the wall");
            END Start;
+BEGIN
+	Start();
 END BottlesOfBeers.
